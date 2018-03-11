@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">무료음악듣기앱</string>
+
+    <string name="reg_msg">아직 회원이 아니신가요?</string>
+    <string name="share_using">이 페이지를 공유</string>
+    <string name="agreement">이용약관</string>
+
+    <string name="integralText">(필수) 내용을 입력하세요.</string>
+
+</resources>
+

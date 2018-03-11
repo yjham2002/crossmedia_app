@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/login_back"
+    android:orientation="vertical"
+    android:layout_gravity="center"
+    android:gravity="center"
+    tools:context="kr.co.picklecode.picklepicks.LoginActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical"
+        android:layout_marginBottom="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:srcCompat="@mipmap/ic_main_logo" />
+
+        <ImageView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/intro_title_size"
+            app:srcCompat="@drawable/title_logo_small" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="20dp"
+        >
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="이메일로 로그인"
+            android:textSize="@dimen/button_default"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/themeColor"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:theme="@style/AppThemeSolidWhite"
+            android:id="@+id/btn_join"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="이메일로 회원가입"
+            android:textSize="@dimen/button_default"
+            android:textColor="@color/themeColor"
+            app:backgroundTint="@color/white"/>
+
+        <ImageView
+            android:src="@drawable/text_logo_gray_small"
+            android:layout_width="match_parent"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="10dp"
+            android:layout_height="13dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

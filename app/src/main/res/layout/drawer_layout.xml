@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/left_drawer"
+    android:layout_width="320dp"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:background="@color/white"
+    >
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:id="@+id/top_menu"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/top_menu_height"
+                android:layout_gravity="bottom"
+                android:background="@color/themeColor"
+                android:layout_alignParentTop="true"
+                android:padding="10dp"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_marginLeft="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:layout_gravity="left|center_vertical"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/font_size_strong"
+                        android:text="@string/app_name"
+                        />
+
+                    <LinearLayout
+                        android:layout_gravity="right|center_vertical"
+                        android:gravity="center_vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent">
+                        <ToggleButton
+                            android:id="@+id/sleepTimer"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_gravity="center"
+                            android:textOff=""
+                            android:textOn=""
+                            android:background="@drawable/btn_toggle_clock"/>
+                        <View
+                            android:layout_width="10dp"
+                            android:layout_height="match_parent" />
+                        <ImageView
+                            android:id="@+id/top_fav"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/btn_favor_top"
+                            android:clickable="true"
+                            android:background="?selectableItemBackgroundBorderless"
+                            />
+                    </LinearLayout>
+
+                </FrameLayout>
+
+            </FrameLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerViewMenu"
+                android:layout_width="match_parent"
+                android:layout_below="@id/top_menu"
+                android:layout_alignParentBottom="true"
+                android:layout_height="wrap_content">
+            </android.support.v7.widget.RecyclerView>
+
+        </RelativeLayout>
+    </FrameLayout>
+
+</LinearLayout>
