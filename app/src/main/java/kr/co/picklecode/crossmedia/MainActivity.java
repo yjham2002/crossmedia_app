@@ -16,6 +16,8 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ToggleButton;
 
@@ -77,8 +79,11 @@ public class MainActivity extends BaseActivity {
 
                 final float toAlpha = 1.0f - slideOffset;
                 slideAnchor.setAlpha(toAlpha);
-                if(toAlpha == 0.0f) slideAnchor.setVisibility(View.INVISIBLE);
-                else slideAnchor.setVisibility(View.VISIBLE);
+                if(toAlpha == 0.0f) {
+                    slideAnchor.setVisibility(View.INVISIBLE);
+                } else {
+                    slideAnchor.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
