@@ -21,6 +21,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ToggleButton;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import bases.BaseActivity;
@@ -31,6 +34,8 @@ import kr.co.picklecode.crossmedia.models.ChannelScheme;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
 
 public class MainActivity extends BaseActivity {
+
+    private NativeExpressAdView mNativeExpressAdView;
 
     private ToggleButton sleepTimer;
     private ImageView btn_favor;
@@ -47,11 +52,14 @@ public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
 
+    private AdView mAdView;
+
     /**
      * Slider
      */
     private ControllableSlidingLayout controllableSlidingLayout;
     private View slideAnchor;
+    private ImageView arrowDown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,14 +71,26 @@ public class MainActivity extends BaseActivity {
     }
 
     private void init(){
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+        mAdView.loadAd(adRequest);
+
         btn_menu_top = findViewById(R.id.btn_menu_action);
         sleepTimer = findViewById(R.id.sleepTimer);
+
+        mNativeExpressAdView = findViewById(R.id.express_adview);
+        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
+        mNativeExpressAdView.loadAd(adRequestBuilder.build());
 
         /**
          * Slider
          */
         controllableSlidingLayout = findViewById(R.id.sliding_layout);
         slideAnchor = findViewById(R.id.slideAnchor);
+        arrowDown = findViewById(R.id.btn_arrow_down);
         controllableSlidingLayout.setClickToCollapseEnabled(false);
         controllableSlidingLayout.setActionWhenExpanded(true, new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
@@ -114,14 +134,16 @@ public class MainActivity extends BaseActivity {
 
         btn_favor = findViewById(R.id.top_fav);
 
-        setClick(btn_favor, btn_menu_top, sleepTimer);
+        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown);
 
         syncTimerState();
 
-        openPopAd();
+        loadInterstitialAd();
 
         loadList();
         loadMenuList();
+
+        showPlayerNotification();
     }
 
     private void loadList(){
@@ -161,31 +183,31 @@ public class MainActivity extends BaseActivity {
         mAdapterMenu.notifyDataSetChanged();
     }
 
-    private void openPopAd(){
-        final Intent intent = new Intent(MainActivity.this, PopAdActivity.class);
-        startActivity(intent);
-    }
-
     @Override
     public void onClick(View v){
         Log.e(this.getClass().getSimpleName(), "onClick Called.");
         switch (v.getId()){
-            case R.id.btn_menu_action:
+            case R.id.btn_menu_action: {
                 openDrawer();
                 break;
+            }
             case R.id.top_fav: {
                 closeDrawer();
                 final Intent favorIntent = new Intent(MainActivity.this, FavorActivity.class);
                 startActivity(favorIntent);
-            }
                 break;
+            }
             case R.id.sleepTimer: {
                 closeDrawer();
                 syncTimerState();
                 final Intent timerIntent = new Intent(MainActivity.this, TimerActivity.class);
                 startActivity(timerIntent);
-            }
                 break;
+            }
+            case R.id.btn_arrow_down: {
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                break;
+            }
             default:
                 break;
         }
@@ -225,6 +247,13 @@ public class MainActivity extends BaseActivity {
     public void onResume(){
         super.onResume();
         mDrawerToggle.syncState();
+        mNativeExpressAdView.resume();
+    }
+
+    @Override
+    public void onPause() {
+        mNativeExpressAdView.pause();
+        super.onPause();
     }
 
     @Override

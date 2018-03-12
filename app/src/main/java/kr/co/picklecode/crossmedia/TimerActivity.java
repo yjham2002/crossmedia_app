@@ -1,5 +1,9 @@
 package kr.co.picklecode.crossmedia;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -8,13 +12,22 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.Date;
+
 import bases.BaseActivity;
+import bases.utils.AlarmBroadcastReceiver;
 import kr.co.picklecode.crossmedia.models.TimerItem;
 
 public class TimerActivity extends BaseActivity {
+
+    private NativeExpressAdView mNativeExpressAdView;
 
     private ImageView btn_back;
 
@@ -22,11 +35,40 @@ public class TimerActivity extends BaseActivity {
     private TimerAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    private TextView caption;
+
+    private AdView mAdView;
+
     /**
      * Slider
      */
     private ControllableSlidingLayout controllableSlidingLayout;
     private View slideAnchor;
+    private ImageView arrowDown;
+
+    /**
+     * Broadcast Receiver Test
+     */
+    private BroadcastReceiver mTimeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e(this.getClass().getSimpleName(), "Alarm Received at [" + new Date() + "]");
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(mTimeReceiver,new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
+        mNativeExpressAdView.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        mNativeExpressAdView.pause();
+        super.onPause();
+        unregisterReceiver(mTimeReceiver);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +79,18 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void initView(){
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+        mAdView.loadAd(adRequest);
+
+        mNativeExpressAdView = findViewById(R.id.express_adview);
+        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
+        mNativeExpressAdView.loadAd(adRequestBuilder.build());
+
+        caption = findViewById(R.id.sleepTimerCaption);
         btn_back = findViewById(R.id.btn_back_action);
 
         mRecyclerView = findViewById(R.id.recyclerView);
@@ -51,6 +105,7 @@ public class TimerActivity extends BaseActivity {
          */
         controllableSlidingLayout = findViewById(R.id.sliding_layout);
         slideAnchor = findViewById(R.id.slideAnchor);
+        arrowDown = findViewById(R.id.btn_arrow_down);
         controllableSlidingLayout.setClickToCollapseEnabled(false);
         controllableSlidingLayout.setActionWhenExpanded(true, new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
@@ -69,7 +124,7 @@ public class TimerActivity extends BaseActivity {
             }
         });
 
-        setClick(btn_back);
+        setClick(btn_back, arrowDown);
 
         loadList();
     }
@@ -93,9 +148,14 @@ public class TimerActivity extends BaseActivity {
     @Override
     public void onClick(View v){
         switch (v.getId()){
-            case R.id.btn_back_action:
+            case R.id.btn_back_action: {
                 finish();
                 break;
+            }
+            case R.id.btn_arrow_down: {
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                break;
+            }
             default: break;
         }
     }

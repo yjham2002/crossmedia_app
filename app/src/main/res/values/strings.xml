@@ -1,11 +1,14 @@
 <resources>
-    <string name="app_name">무료음악듣기앱</string>
+    <string name="app_name">유튜브 세이방송앱</string>
 
     <string name="reg_msg">아직 회원이 아니신가요?</string>
     <string name="share_using">이 페이지를 공유</string>
     <string name="agreement">이용약관</string>
 
     <string name="integralText">(필수) 내용을 입력하세요.</string>
+
+    <string name="native_express_id">ca-app-pub-3940256099942544/2177258514</string>
+    <string name="google_app_id">null</string>
 
 </resources>
 

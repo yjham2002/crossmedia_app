@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    >
+
+    <LinearLayout
+        android:layout_gravity="center_vertical|left"
+        android:gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        >
+        <ImageView
+            android:id="@+id/noti_img"
+            android:src="@drawable/icon_hour_glass"
+            android:layout_marginRight="10dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/noti_title"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:gravity="center_vertical|left"
+                android:textSize="@dimen/font_size_strong"
+                android:text="테스트 채널"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/noti_sub"
+                android:ellipsize="marquee"
+                android:textColor="@color/aluminum"
+                android:singleLine="true"
+                android:gravity="center_vertical|left"
+                android:textSize="@dimen/font_size_default"
+                android:text="설명이 입력됩니다."
+                android:layout_width="160dp"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_gravity="center_vertical|right"
+        android:gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        >
+
+        <FrameLayout
+            android:layout_marginRight="10dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp">
+            <ImageView
+                android:id="@+id/noti_play"
+                android:clickable="true"
+                android:src="@drawable/btn_play_noti"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                />
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/noti_pause"
+                android:clickable="true"
+                android:src="@drawable/btn_pause_noti"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/noti_close"
+            android:clickable="true"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/btn_close_noti"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            />
+    </LinearLayout>
+
+</FrameLayout>

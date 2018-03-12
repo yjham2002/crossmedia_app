@@ -13,9 +13,12 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import bases.BaseActivity;
 import bases.imageTransform.RoundedTransform;
+import bases.utils.AlarmUtils;
 import kr.co.picklecode.crossmedia.models.TimerItem;
 
 public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> {
@@ -58,7 +61,7 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        TimerItem mData = mListData.get(position);
+        final TimerItem mData = mListData.get(position);
 
         holder._title.setText(mData.getDisplayName());
         holder._title.setSelected(true);
@@ -66,11 +69,8 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                final TimerItem mData = mListData.get(position);
-//                Intent i = new Intent(mContext, DetailActivity.class);
-//                i.putExtra("URL", mData.Url);
-//                i.putExtra("id", mData.id);
-//                mContext.startActivity(i);
+                AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000);
+//                AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60); // Need to be activated :(
             }
         });
     }

@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import bases.BaseActivity;
@@ -16,17 +19,22 @@ import kr.co.picklecode.crossmedia.models.Article;
 
 public class FavorActivity extends BaseActivity {
 
+    private NativeExpressAdView mNativeExpressAdView;
+
     private ImageView btn_back;
 
     private RecyclerView mRecyclerView;
     private ArticleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    private AdView mAdView;
+
     /**
      * Slider
      */
     private ControllableSlidingLayout controllableSlidingLayout;
     private View slideAnchor;
+    private ImageView arrowDown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +45,17 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void initView(){
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+        mAdView.loadAd(adRequest);
+
+        mNativeExpressAdView = findViewById(R.id.express_adview);
+        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
+        mNativeExpressAdView.loadAd(adRequestBuilder.build());
+
         btn_back = findViewById(R.id.btn_back_action);
 
         mRecyclerView = findViewById(R.id.recyclerView);
@@ -51,6 +70,7 @@ public class FavorActivity extends BaseActivity {
          */
         controllableSlidingLayout = findViewById(R.id.sliding_layout);
         slideAnchor = findViewById(R.id.slideAnchor);
+        arrowDown = findViewById(R.id.btn_arrow_down);
         controllableSlidingLayout.setClickToCollapseEnabled(false);
         controllableSlidingLayout.setActionWhenExpanded(true, new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
@@ -69,7 +89,7 @@ public class FavorActivity extends BaseActivity {
             }
         });
 
-        setClick(btn_back);
+        setClick(btn_back, arrowDown);
 
         loadList();
     }
@@ -93,11 +113,28 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onClick(View v){
         switch (v.getId()){
-            case R.id.btn_back_action:
+            case R.id.btn_back_action: {
                 finish();
                 break;
+            }
+            case R.id.btn_arrow_down: {
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                break;
+            }
             default: break;
         }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mNativeExpressAdView.resume();
+    }
+
+    @Override
+    public void onPause() {
+        mNativeExpressAdView.pause();
+        super.onPause();
     }
 
 }

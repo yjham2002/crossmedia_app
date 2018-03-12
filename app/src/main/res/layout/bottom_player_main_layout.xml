@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:ads="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_alignParentTop="true"
@@ -14,6 +15,13 @@
         android:gravity="center"
         android:background="@color/colorPrimaryPlayer"
         >
+        <ImageView
+            android:background="?selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:id="@+id/btn_arrow_down"
+            android:src="@drawable/btn_arrow_down"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
         <ImageView
             android:id="@+id/playing_thumb"
             android:src="@drawable/icon_hour_glass"
@@ -82,7 +90,26 @@
         </LinearLayout>
     </LinearLayout>
 
+    <FrameLayout
+        android:background="@color/white"
+        android:layout_below="@id/dragView"
+        android:layout_above="@id/controlPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.gms.ads.NativeExpressAdView
+            android:id="@+id/express_adview"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            ads:adSize="320x300"
+            ads:adUnitId="@string/native_express_id">
+        </com.google.android.gms.ads.NativeExpressAdView>
+    </FrameLayout>
+
     <LinearLayout
+        android:id="@+id/controlPanel"
         android:background="@color/player_gauge"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"

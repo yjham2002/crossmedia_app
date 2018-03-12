@@ -1,21 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/transparent_gray"
     tools:context="kr.co.picklecode.crossmedia.ExitActivity">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginTop="70dp"
-        android:layout_marginBottom="50dp"
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:background="@color/white"
         >
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_above="@+id/buttonLayout"
+            >
+            <com.google.android.gms.ads.NativeExpressAdView
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                ads:adSize="320x300"
+                ads:adUnitId="@string/native_express_id">
+            </com.google.android.gms.ads.NativeExpressAdView>
+        </FrameLayout>
         <LinearLayout
             android:id="@+id/buttonLayout"
             android:layout_alignParentBottom="true"
@@ -45,20 +59,6 @@
                 android:text="CANCEL"
                 android:layout_gravity="center_horizontal|bottom" />
         </LinearLayout>
+    </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentTop="true"
-            android:layout_above="@+id/buttonLayout"
-            >
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="광고가 표시될 영역입니다."
-                android:gravity="center"
-                />
-        </FrameLayout>
-    </RelativeLayout>
-
-</android.support.constraint.ConstraintLayout>
+</FrameLayout>
