@@ -16,16 +16,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import bases.imageTransform.RoundedTransform;
+import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
 
 public class SchemeAdapter extends RecyclerView.Adapter<SchemeAdapter.ViewHolder> {
 
     public static final int HEADER = 3, DEFAULT = 0;
 
+    private AdapterCall adapterCall;
+
     public Context mContext = null;
     public List<ChannelScheme> mListData = new ArrayList<>();
     public int item_layout;
     public int addition = 0;
+
+    public SchemeAdapter(Context mContext, int item_layout, AdapterCall itemTouchCallback){
+        this(mContext, item_layout);
+        this.adapterCall = itemTouchCallback;
+    }
 
     public SchemeAdapter(Context mContext, int item_layout) {
         super();
@@ -58,7 +66,7 @@ public class SchemeAdapter extends RecyclerView.Adapter<SchemeAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        ChannelScheme mData = mListData.get(position);
+        final ChannelScheme mData = mListData.get(position);
 
         holder._title.setText(mData.getTitle());
         holder._title.setSelected(true);
@@ -66,11 +74,9 @@ public class SchemeAdapter extends RecyclerView.Adapter<SchemeAdapter.ViewHolder
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                final ChannelScheme mData = mListData.get(position);
-//                Intent i = new Intent(mContext, DetailActivity.class);
-//                i.putExtra("URL", mData.Url);
-//                i.putExtra("id", mData.id);
-//                mContext.startActivity(i);
+                if(adapterCall != null){
+                    adapterCall.onCall(mData);
+                }
             }
         });
     }

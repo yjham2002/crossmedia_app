@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
@@ -36,12 +37,15 @@ import java.util.Map;
 import bases.BaseActivity;
 
 import comm.SimpleCall;
+import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
 
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
 
 public class MainActivity extends BaseActivity {
+
+    private ProgressBar progress;
 
     private NativeExpressAdView mNativeExpressAdView;
 
@@ -79,6 +83,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void init(){
+        progress = findViewById(R.id.progress);
+
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
@@ -134,7 +140,13 @@ public class MainActivity extends BaseActivity {
          * Drawer Menu
          */
         mRecyclerViewMenu = findViewById(R.id.recyclerViewMenu);
-        mAdapterMenu = new SchemeAdapter(this, R.layout.layout_scheme);
+        mAdapterMenu = new SchemeAdapter(this, R.layout.layout_scheme, new AdapterCall<ChannelScheme>(){
+            @Override
+            public void onCall(ChannelScheme article) {
+                loadList(article);
+            }
+        });
+
         mRecyclerViewMenu.setAdapter(mAdapterMenu);
         layoutManagerMenu = new LinearLayoutManager(this);
         mRecyclerViewMenu.setLayoutManager(layoutManagerMenu);
@@ -148,33 +160,53 @@ public class MainActivity extends BaseActivity {
 
         loadInterstitialAd();
 
-        loadList();
         loadMenuList();
 
         showPlayerNotification();
     }
 
-    private void loadList(){
+    private void loadList(ChannelScheme channelScheme){
+
+        showToast(channelScheme.toString());
+
         mAdapter.mListData.clear();
 
-        for(int e = 0; e < 20; e++){
-            final Article article = new Article();
+        Map<String, Object> params = new HashMap<>();
+        params.put("ap_id", 374);
+        params.put("cg_id", channelScheme.getId());
+        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/video_list.php", params, new SimpleCall.CallBack() {
+            @Override
+            public void handle(JSONObject jsonObject) {
+                try {
+                    final JSONObject result = jsonObject.getJSONObject("result");
+                    final JSONArray json_arr  = result.getJSONArray("list");
+                    final int totalCount = result.getInt("total_count");
+                    final int totalPage = result.getInt("total_page");
+                    final int currentPage = result.getInt("page");
 
-            article.setImgPath("http://lorempixel.com/50/50");
-            article.setTitle("테스트 채널 " + e);
-            article.setContent("설명이 삽입될 위치입니다.");
-            if(e == 10) {
-                article.setTitle("아주 긴 채널명입니다. 아주 길고 긴 채널명입니다. 길고 깁니다.");
-                article.setContent("설명이 삽입될 위치입니다. 설명이 삽입될 위치입니다. 설명이 삽입될 위치입니다.");
+                    for(int i = 0; i < json_arr.length(); i++){
+                        JSONObject object = json_arr.getJSONObject(i);
+                        final Article article = new Article();
+                        article.setId(object.getInt("vd_id"));
+                        article.setRepPath(object.getString("vd_url"));
+                        article.setImgPath(object.getString("vd_thum_url"));
+                        article.setTitle(object.getString("vd_title"));
+                        article.setContent(object.getString("vd_name"));
+                        mAdapter.mListData.add(article);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }finally {
+                    mAdapter.notifyDataSetChanged();
+                    progress.setVisibility(View.INVISIBLE);
+                    // TODO Add Progressbar on the main list
+                }
             }
-
-            mAdapter.mListData.add(article);
-        }
-
-        mAdapter.notifyDataSetChanged();
+        });
     }
 
     private void loadMenuList(){
+        progress.setVisibility(View.VISIBLE);
         mAdapterMenu.mListData.clear();
 
         Map<String, Object> params = new HashMap<>();
@@ -192,11 +224,15 @@ public class MainActivity extends BaseActivity {
                         article.setId(object.getInt("cg_id"));
                         article.setOrder(object.getInt("cg_order"));
                         mAdapterMenu.mListData.add(article);
+                        if(i == 0){
+                            loadList(article);
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
                     mAdapterMenu.notifyDataSetChanged();
+                    progress.setVisibility(View.INVISIBLE);
                 }
             }
         });

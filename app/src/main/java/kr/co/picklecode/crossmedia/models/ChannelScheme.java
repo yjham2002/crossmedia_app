@@ -43,4 +43,13 @@ public class ChannelScheme {
         this.order = order;
     }
 
+    @Override
+    public String toString() {
+        return "ChannelScheme{" +
+                "id=" + id +
+                ", crawlUrl='" + crawlUrl + '\'' +
+                ", title='" + title + '\'' +
+                ", order=" + order +
+                '}';
+    }
 }

@@ -72,13 +72,26 @@
 
             </FrameLayout>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recyclerViewMenu"
+            <FrameLayout
+                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:layout_below="@id/top_menu"
                 android:layout_alignParentBottom="true"
-                android:layout_height="wrap_content">
-            </android.support.v7.widget.RecyclerView>
+                android:layout_below="@id/top_menu">
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recyclerViewMenu"
+                    android:layout_width="match_parent"
+                    android:layout_alignParentBottom="true"
+                    android:layout_height="wrap_content">
+                </android.support.v7.widget.RecyclerView>
+                <ProgressBar
+                    android:id="@+id/progress"
+                    android:layout_marginBottom="50dp"
+                    android:indeterminateTint="@color/colorPrimary"
+                    android:indeterminateTintMode="src_in"
+                    android:layout_gravity="center"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"></ProgressBar>
+            </FrameLayout>
 
         </RelativeLayout>
     </FrameLayout>
