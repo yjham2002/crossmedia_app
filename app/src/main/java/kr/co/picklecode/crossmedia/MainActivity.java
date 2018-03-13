@@ -26,8 +26,16 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import bases.BaseActivity;
 
+import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
 
@@ -169,18 +177,30 @@ public class MainActivity extends BaseActivity {
     private void loadMenuList(){
         mAdapterMenu.mListData.clear();
 
-        for(int e = 0; e < 7; e++){
-            final ChannelScheme article = new ChannelScheme();
+        Map<String, Object> params = new HashMap<>();
+        params.put("ap_id", 374);
+        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/category.php", params, new SimpleCall.CallBack() {
+            @Override
+            public void handle(JSONObject jsonObject) {
+                try {
+                    JSONArray json_arr  = jsonObject.getJSONArray("result");
+                    for(int i = 0; i < json_arr.length(); i++){
+                        JSONObject object = json_arr.getJSONObject(i);
+                        final ChannelScheme article = new ChannelScheme();
+                        article.setCrawlUrl("");
+                        article.setTitle(object.getString("cg_name"));
+                        article.setId(object.getInt("cg_id"));
+                        article.setOrder(object.getInt("cg_order"));
+                        mAdapterMenu.mListData.add(article);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }finally {
+                    mAdapterMenu.notifyDataSetChanged();
+                }
+            }
+        });
 
-            article.setCrawlUrl("");
-            article.setTitle("테스트 메뉴 " + e);
-            article.setId(0);
-            article.setOrder(0);
-
-            mAdapterMenu.mListData.add(article);
-        }
-
-        mAdapterMenu.notifyDataSetChanged();
     }
 
     @Override
