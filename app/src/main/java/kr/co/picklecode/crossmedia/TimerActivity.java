@@ -27,8 +27,6 @@ import kr.co.picklecode.crossmedia.models.TimerItem;
 
 public class TimerActivity extends BaseActivity {
 
-    private NativeExpressAdView mNativeExpressAdView;
-
     private ImageView btn_back;
 
     private RecyclerView mRecyclerView;
@@ -60,12 +58,10 @@ public class TimerActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mTimeReceiver,new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
-        mNativeExpressAdView.resume();
     }
 
     @Override
     protected void onPause() {
-        mNativeExpressAdView.pause();
         super.onPause();
         unregisterReceiver(mTimeReceiver);
     }
@@ -79,16 +75,14 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void initView(){
+        refreshAd(true, false);
+
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2")
                 .build();
         mAdView.loadAd(adRequest);
-
-        mNativeExpressAdView = findViewById(R.id.express_adview);
-        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-        mNativeExpressAdView.loadAd(adRequestBuilder.build());
 
         caption = findViewById(R.id.sleepTimerCaption);
         btn_back = findViewById(R.id.btn_back_action);

@@ -10,5 +10,7 @@
     <string name="native_express_id">ca-app-pub-3940256099942544/2177258514</string>
     <string name="google_app_id">null</string>
 
+    <string name="ad_attribution">Ad</string>
+
 </resources>
 

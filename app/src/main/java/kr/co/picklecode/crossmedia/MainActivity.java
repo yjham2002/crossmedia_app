@@ -47,8 +47,6 @@ public class MainActivity extends BaseActivity {
 
     private ProgressBar progress;
 
-    private NativeExpressAdView mNativeExpressAdView;
-
     private ToggleButton sleepTimer;
     private ImageView btn_favor;
 
@@ -83,21 +81,19 @@ public class MainActivity extends BaseActivity {
     }
 
     private void init(){
+        refreshAd(true, false);
+
         progress = findViewById(R.id.progress);
 
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2")
                 .build();
         mAdView.loadAd(adRequest);
 
         btn_menu_top = findViewById(R.id.btn_menu_action);
         sleepTimer = findViewById(R.id.sleepTimer);
-
-        mNativeExpressAdView = findViewById(R.id.express_adview);
-        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-        mNativeExpressAdView.loadAd(adRequestBuilder.build());
 
         /**
          * Slider
@@ -303,12 +299,10 @@ public class MainActivity extends BaseActivity {
     public void onResume(){
         super.onResume();
         mDrawerToggle.syncState();
-        mNativeExpressAdView.resume();
     }
 
     @Override
     public void onPause() {
-        mNativeExpressAdView.pause();
         super.onPause();
     }
 

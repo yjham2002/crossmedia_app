@@ -19,8 +19,6 @@ import kr.co.picklecode.crossmedia.models.Article;
 
 public class FavorActivity extends BaseActivity {
 
-    private NativeExpressAdView mNativeExpressAdView;
-
     private ImageView btn_back;
 
     private RecyclerView mRecyclerView;
@@ -45,16 +43,14 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void initView(){
+        refreshAd(true, false);
+
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2")
                 .build();
         mAdView.loadAd(adRequest);
-
-        mNativeExpressAdView = findViewById(R.id.express_adview);
-        AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-        adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-        mNativeExpressAdView.loadAd(adRequestBuilder.build());
 
         btn_back = findViewById(R.id.btn_back_action);
 
@@ -128,12 +124,10 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onResume(){
         super.onResume();
-        mNativeExpressAdView.resume();
     }
 
     @Override
     public void onPause() {
-        mNativeExpressAdView.pause();
         super.onPause();
     }
 

@@ -9,6 +9,7 @@ import comm.Comm;
 
 public class BaseApp extends Application {
 
+    public static final String ADMOB_AD_ID = "ca-app-pub-1846833106939117~4067137440";
     private static Context context;
 
     static{
@@ -19,7 +20,7 @@ public class BaseApp extends Application {
     public void onCreate() {
         super.onCreate();
         this.context = this.getApplicationContext();
-        MobileAds.initialize(this, "ca-app-pub-1846833106939117~4067137440");
+        MobileAds.initialize(this, ADMOB_AD_ID);
     }
 
     public static Context getContext() {

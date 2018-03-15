@@ -88,24 +88,18 @@
                 android:textOn=""
                 android:background="@drawable/btn_toggle_favor_player"/>
         </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="15dp"/>
     </LinearLayout>
 
     <FrameLayout
+        android:id="@+id/fl_adplaceholder"
         android:background="@color/white"
         android:layout_below="@id/dragView"
         android:layout_above="@id/controlPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <com.google.android.gms.ads.NativeExpressAdView
-            android:id="@+id/express_adview"
-            android:layout_gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            ads:adSize="320x300"
-            ads:adUnitId="@string/native_express_id">
-        </com.google.android.gms.ads.NativeExpressAdView>
     </FrameLayout>
 
     <LinearLayout
