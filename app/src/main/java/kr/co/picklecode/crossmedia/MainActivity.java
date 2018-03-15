@@ -49,6 +49,8 @@ public class MainActivity extends BaseActivity {
     private TextView titleDisplay;
 
     private ImageView _topBtn;
+    private Handler topBtnHandler;
+    private Runnable topBtnRun;
 
     private ProgressBar progress;
     private ProgressBar progressMain;
@@ -143,19 +145,23 @@ public class MainActivity extends BaseActivity {
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        topBtnHandler = new Handler();
+        topBtnRun = new Runnable() {
+            @Override
+            public void run() {
+                _topBtn.setVisibility(View.INVISIBLE);
+            }
+        };
+
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if(newState != 0){
                     _topBtn.setVisibility(View.VISIBLE);
+                    topBtnHandler.removeCallbacks(topBtnRun);
                 }else{
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            _topBtn.setVisibility(View.INVISIBLE);
-                        }
-                    }, 3000);
+                    topBtnHandler.postDelayed(topBtnRun, 3000);
                 }
             }
 
