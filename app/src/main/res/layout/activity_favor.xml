@@ -34,19 +34,22 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:id="@+id/btn_back_action"
                     android:orientation="horizontal"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:background="?selectableItemBackgroundBorderless"
+                    >
                     <ImageView
-                        android:id="@+id/btn_back_action"
                         android:layout_width="@dimen/top_icon_size"
                         android:layout_height="@dimen/top_icon_size"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/btn_back"
-                        android:clickable="true"
-                        android:background="?selectableItemBackgroundBorderless"
+                        android:clickable="false"
                         />
                     <TextView
+                        android:clickable="false"
                         android:layout_marginLeft="5dp"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"

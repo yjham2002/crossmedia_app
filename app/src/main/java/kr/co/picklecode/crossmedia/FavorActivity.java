@@ -6,9 +6,11 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -24,7 +26,7 @@ public class FavorActivity extends BaseActivity {
     private Handler topBtnHandler;
     private Runnable topBtnRun;
 
-    private ImageView btn_back;
+    private View btn_back;
 
     private RecyclerView mRecyclerView;
     private ArticleAdapter mAdapter;

@@ -339,7 +339,9 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
      * @param views view objects to bind a listener
      */
     protected void setClick(View... views){
-        for(View view : views) view.setOnClickListener(this);
+        for(View view : views) {
+            if(view != null) view.setOnClickListener(this);
+        }
     }
 
 }

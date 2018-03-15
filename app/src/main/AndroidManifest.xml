@@ -38,10 +38,6 @@
             android:name=".TimerActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeSolid" />
-        <activity android:name=".PlayerActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppThemeSolidMint"
-            ></activity>
 
         <activity android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
