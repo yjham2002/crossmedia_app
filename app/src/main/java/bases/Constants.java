@@ -10,4 +10,8 @@ public class Constants {
         String IS_ALARM_SET = "kr.co.picklecode.crossmedia.isAlarmSet";
     }
 
+    public interface DATABASE{
+        String DB_NAME = "kr.co.picklecode.crossmedia.pickleDB";
+    }
+
 }

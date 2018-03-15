@@ -80,4 +80,18 @@ public class Article {
     public void setUptDate(String uptDate) {
         this.uptDate = uptDate;
     }
+
+    @Override
+    public String toString() {
+        return "Article{" +
+                "id=" + id +
+                ", type=" + type +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", repPath='" + repPath + '\'' +
+                ", imgPath='" + imgPath + '\'' +
+                ", regDate='" + regDate + '\'' +
+                ", uptDate='" + uptDate + '\'' +
+                '}';
+    }
 }

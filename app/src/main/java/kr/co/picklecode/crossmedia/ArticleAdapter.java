@@ -4,9 +4,11 @@ package kr.co.picklecode.crossmedia;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -23,8 +25,6 @@ import kr.co.picklecode.crossmedia.models.Article;
 
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
 
-    private AdapterCall<Article> favorCall;
-
     public static final int HEADER = 3, DEFAULT = 0;
 
     public Context mContext = null;
@@ -37,10 +37,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public ArticleAdapter(Context mContext, int item_layout, AdapterCall itemTouchCallback) {
         this(mContext, item_layout);
         this.adapterCall = itemTouchCallback;
-    }
-
-    public void setFavorCall(AdapterCall<Article> favorCall) {
-        this.favorCall = favorCall;
     }
 
     public ArticleAdapter(Context mContext, int item_layout) {
@@ -103,11 +99,13 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             }
         });
 
-        holder.toggleButton.setOnClickListener(new View.OnClickListener() {
+        holder.toggleButton.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener(){
             @Override
-            public void onClick(View view) {
-                if(favorCall != null){
-                    favorCall.onCall(mData);
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(b){
+                    FavorSQLManager.getInstance(mContext).insert(mData);
+                }else {
+                    FavorSQLManager.getInstance(mContext).delete(mData.getId());
                 }
             }
         });

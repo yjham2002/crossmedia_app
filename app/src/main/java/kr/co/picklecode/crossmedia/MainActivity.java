@@ -1,5 +1,6 @@
 package kr.co.picklecode.crossmedia;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -40,6 +41,8 @@ import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
 
 public class MainActivity extends BaseActivity {
+
+    private Activity mContext;
 
     private TextView titleDisplay;
 
@@ -85,6 +88,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void init(){
+        mContext = this;
+
         refreshAd(true, false);
 
         playingTimer = findViewById(R.id.playing_timer);
@@ -140,13 +145,7 @@ public class MainActivity extends BaseActivity {
         mAdapter = new ArticleAdapter(this, R.layout.layout_article, new AdapterCall<Article>(){
             @Override
             public void onCall(Article article) { // View Listener
-
-            }
-        });
-        mAdapter.setFavorCall(new AdapterCall<Article>() {
-            @Override
-            public void onCall(Article article) { // Favor Listener
-
+                showToast("View Clicked : " + article);
             }
         });
 

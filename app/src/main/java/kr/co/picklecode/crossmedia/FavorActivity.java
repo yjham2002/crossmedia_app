@@ -14,6 +14,8 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.List;
+
 import bases.BaseActivity;
 import kr.co.picklecode.crossmedia.models.Article;
 
@@ -134,12 +136,10 @@ public class FavorActivity extends BaseActivity {
     private void loadList(){
         mAdapter.mListData.clear();
 
-        for(int e = 0; e < 20; e++){
-            final Article article = new Article();
+        List<Article> articles = FavorSQLManager.getInstance(this).getResultOrderBy(null);
 
-            article.setImgPath("http://lorempixel.com/50/50");
-            article.setTitle("테스트 채널 " + e);
-            article.setContent("설명이 삽입될 위치입니다.");
+        for(int e = 0; e < articles.size(); e++){
+            final Article article = articles.get(e);
 
             mAdapter.mListData.add(article);
         }
