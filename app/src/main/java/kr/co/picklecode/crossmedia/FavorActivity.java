@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -27,6 +28,8 @@ public class FavorActivity extends BaseActivity {
     private RecyclerView mRecyclerView;
     private ArticleAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+
+    private ToggleButton playingTimer;
 
     private AdView mAdView;
 
@@ -50,6 +53,8 @@ public class FavorActivity extends BaseActivity {
             UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+
+        playingTimer = findViewById(R.id.playing_timer);
 
         refreshAd(true, false);
 
@@ -121,7 +126,7 @@ public class FavorActivity extends BaseActivity {
             }
         });
 
-        setClick(btn_back, arrowDown, _topBtn);
+        setClick(btn_back, arrowDown, _topBtn, playingTimer);
 
         loadList();
     }
@@ -145,6 +150,11 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onClick(View v){
         switch (v.getId()){
+            case R.id.playing_timer: {
+                UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
+                UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+                break;
+            }
             case R.id.top_btn:{
                 mRecyclerView.smoothScrollToPosition(0);
                 break;

@@ -51,6 +51,7 @@ public class MainActivity extends BaseActivity {
     private ProgressBar progressMain;
 
     private ToggleButton sleepTimer;
+    private ToggleButton playingTimer;
     private ImageView btn_favor;
 
     private RecyclerView mRecyclerView;
@@ -85,6 +86,8 @@ public class MainActivity extends BaseActivity {
 
     private void init(){
         refreshAd(true, false);
+
+        playingTimer = findViewById(R.id.playing_timer);
 
         titleDisplay = findViewById(R.id.titleDisplay);
 
@@ -184,7 +187,7 @@ public class MainActivity extends BaseActivity {
 
         btn_favor = findViewById(R.id.top_fav);
 
-        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn);
+        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn, playingTimer);
 
         loadInterstitialAd();
 
@@ -293,6 +296,11 @@ public class MainActivity extends BaseActivity {
             }
             case R.id.btn_menu_action: {
                 openDrawer();
+                break;
+            }
+            case R.id.playing_timer: {
+                UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
+                UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
                 break;
             }
             case R.id.top_fav: {

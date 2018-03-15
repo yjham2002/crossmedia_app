@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -38,6 +39,8 @@ public class TimerActivity extends BaseActivity {
     private TextView caption;
 
     private AdView mAdView;
+
+    private ToggleButton playingTimer;
 
     /**
      * Slider
@@ -83,6 +86,8 @@ public class TimerActivity extends BaseActivity {
         if(UISyncManager.getInstance().isSchemeLoaded()){
             UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
+
+        playingTimer = findViewById(R.id.playing_timer);
 
         refreshAd(true, false);
 
@@ -133,7 +138,7 @@ public class TimerActivity extends BaseActivity {
             }
         });
 
-        setClick(btn_back, arrowDown);
+        setClick(btn_back, arrowDown, playingTimer);
 
         loadList();
     }
@@ -157,6 +162,11 @@ public class TimerActivity extends BaseActivity {
     @Override
     public void onClick(View v){
         switch (v.getId()){
+            case R.id.playing_timer: {
+                UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
+                UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+                break;
+            }
             case R.id.btn_back_action: {
                 finish();
                 break;
