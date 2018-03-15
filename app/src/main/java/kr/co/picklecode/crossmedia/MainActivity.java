@@ -20,6 +20,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
@@ -45,7 +46,12 @@ import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDE
 
 public class MainActivity extends BaseActivity {
 
+    private ChannelScheme currentScheme;
+
+    private TextView titleDisplay;
+
     private ProgressBar progress;
+    private ProgressBar progressMain;
 
     private ToggleButton sleepTimer;
     private ImageView btn_favor;
@@ -83,7 +89,10 @@ public class MainActivity extends BaseActivity {
     private void init(){
         refreshAd(true, false);
 
+        titleDisplay = findViewById(R.id.titleDisplay);
+
         progress = findViewById(R.id.progress);
+        progressMain = findViewById(R.id.progressMain);
 
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
@@ -165,6 +174,18 @@ public class MainActivity extends BaseActivity {
 
         showToast(channelScheme.toString());
 
+        AudienceSync.getInstance().setChannelScheme(channelScheme);
+
+        if(AudienceSync.getInstance().isSchemeLoaded()){
+            AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        }
+
+        currentScheme = channelScheme;
+
+        titleDisplay.setText(channelScheme.getTitle());
+
+        progress.setVisibility(View.VISIBLE);
+        progressMain.setVisibility(View.VISIBLE);
         mAdapter.mListData.clear();
 
         Map<String, Object> params = new HashMap<>();
@@ -193,8 +214,10 @@ public class MainActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
+
                     mAdapter.notifyDataSetChanged();
                     progress.setVisibility(View.INVISIBLE);
+                    progressMain.setVisibility(View.INVISIBLE);
                     // TODO Add Progressbar on the main list
                 }
             }
@@ -219,6 +242,10 @@ public class MainActivity extends BaseActivity {
                         article.setTitle(object.getString("cg_name"));
                         article.setId(object.getInt("cg_id"));
                         article.setOrder(object.getInt("cg_order"));
+                        article.setCg_max(object.getInt("cg_max"));
+                        article.setCg_min(object.getInt("cg_min"));
+                        article.setCg_range(object.getInt("cg_range"));
+                        article.setCg_cur(object.getInt("cg_current"));
                         mAdapterMenu.mListData.add(article);
                         if(i == 0){
                             loadList(article);

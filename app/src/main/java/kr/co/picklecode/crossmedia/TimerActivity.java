@@ -75,6 +75,10 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void initView(){
+        if(AudienceSync.getInstance().isSchemeLoaded()){
+            AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        }
+
         refreshAd(true, false);
 
         mAdView = findViewById(R.id.adView);

@@ -10,6 +10,42 @@ public class ChannelScheme {
     private String crawlUrl;
     private String title;
     private int order;
+    private int cg_min;
+    private int cg_max;
+    private int cg_range;
+    private int cg_cur;
+
+    public int getCg_min() {
+        return cg_min;
+    }
+
+    public void setCg_min(int cg_min) {
+        this.cg_min = cg_min;
+    }
+
+    public int getCg_max() {
+        return cg_max;
+    }
+
+    public void setCg_max(int cg_max) {
+        this.cg_max = cg_max;
+    }
+
+    public int getCg_range() {
+        return cg_range;
+    }
+
+    public void setCg_range(int cg_range) {
+        this.cg_range = cg_range;
+    }
+
+    public int getCg_cur() {
+        return cg_cur;
+    }
+
+    public void setCg_cur(int cg_cur) {
+        this.cg_cur = cg_cur;
+    }
 
     public int getId() {
         return id;
@@ -50,6 +86,11 @@ public class ChannelScheme {
                 ", crawlUrl='" + crawlUrl + '\'' +
                 ", title='" + title + '\'' +
                 ", order=" + order +
+                ", cg_min=" + cg_min +
+                ", cg_max=" + cg_max +
+                ", cg_range=" + cg_range +
+                ", cg_cur=" + cg_cur +
                 '}';
     }
+
 }

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,6 +38,7 @@ import com.google.android.gms.ads.formats.NativeContentAdView;
 
 import java.util.List;
 
+import kr.co.picklecode.crossmedia.AudienceSync;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 
@@ -56,6 +58,16 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     @Override
     public void onClick(View view){
         Log.e(this.getClass().getSimpleName(), "Override onClick method in BaseActivity to use View.OnClickListener");
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        commonInit();
+    }
+
+    private void commonInit(){
     }
 
     protected void showPlayerNotification(){
