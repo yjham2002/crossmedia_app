@@ -2,22 +2,23 @@ package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
-import java.util.Random;
-
+import bases.Constants;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
+import utils.PreferenceUtil;
 
 /**
  * Created by HP on 2018-03-15.
  */
 
-public class AudienceSync {
+public class UISyncManager {
 
-    private static AudienceSync instance;
+    private static UISyncManager instance;
     private ChannelScheme channelScheme;
 
-    public static AudienceSync getInstance(){
-        if(instance == null) instance = new AudienceSync();
+    public static UISyncManager getInstance(){
+        if(instance == null) instance = new UISyncManager();
         return instance;
     }
 
@@ -45,6 +46,14 @@ public class AudienceSync {
                 final int newVal = getRandomCount();
                 ((TextView)activity.findViewById(id)).setText(newVal + "");
                 updateThisChannelScheme(newVal);
+            }
+        }
+    }
+
+    public void syncTimerSet(Activity activity, int id){
+        if(activity.findViewById(id) != null){
+            if(activity.findViewById(id) instanceof ToggleButton){
+                ((ToggleButton)activity.findViewById(id)).setChecked(PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false));
             }
         }
     }

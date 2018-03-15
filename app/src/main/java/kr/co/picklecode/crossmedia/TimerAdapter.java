@@ -17,18 +17,28 @@ import java.util.Date;
 import java.util.List;
 
 import bases.BaseActivity;
+import bases.Constants;
 import bases.imageTransform.RoundedTransform;
 import bases.utils.AlarmUtils;
+import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.TimerItem;
+import utils.PreferenceUtil;
 
 public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> {
 
     public static final int HEADER = 3, DEFAULT = 0;
 
+    private AdapterCall<TimerItem> adapterCall;
+
     public Context mContext = null;
     public List<TimerItem> mListData = new ArrayList<>();
     public int item_layout;
     public int addition = 0;
+
+    public TimerAdapter(Context mContext, int item_layout, AdapterCall<TimerItem> adapterCall) {
+        this(mContext, item_layout);
+        this.adapterCall = adapterCall;
+    }
 
     public TimerAdapter(Context mContext, int item_layout) {
         super();
@@ -69,8 +79,16 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000);
+                if(mData.isCancel()){
+                    PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, false);
+                }else{
+                    AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000);
+                    PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, true);
+                }
 //                AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60); // Need to be activated :(
+                if(adapterCall != null){
+                    adapterCall.onCall(mData);
+                }
             }
         });
     }

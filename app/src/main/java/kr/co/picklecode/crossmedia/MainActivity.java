@@ -16,8 +16,6 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -25,7 +23,6 @@ import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONArray;
@@ -41,8 +38,6 @@ import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
-
-import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
 
 public class MainActivity extends BaseActivity {
 
@@ -191,8 +186,6 @@ public class MainActivity extends BaseActivity {
 
         setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn);
 
-        syncTimerState();
-
         loadInterstitialAd();
 
         loadMenuList();
@@ -204,10 +197,10 @@ public class MainActivity extends BaseActivity {
 
         showToast(channelScheme.toString());
 
-        AudienceSync.getInstance().setChannelScheme(channelScheme);
+        UISyncManager.getInstance().setChannelScheme(channelScheme);
 
-        if(AudienceSync.getInstance().isSchemeLoaded()){
-            AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
 
         titleDisplay.setText(channelScheme.getTitle());
@@ -310,7 +303,8 @@ public class MainActivity extends BaseActivity {
             }
             case R.id.sleepTimer: {
                 closeDrawer();
-                syncTimerState();
+                UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
+                UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
                 final Intent timerIntent = new Intent(MainActivity.this, TimerActivity.class);
                 startActivity(timerIntent);
                 break;
@@ -322,10 +316,6 @@ public class MainActivity extends BaseActivity {
             default:
                 break;
         }
-    }
-
-    private void syncTimerState(){
-        sleepTimer.setChecked(false);
     }
 
     @Override
@@ -358,6 +348,8 @@ public class MainActivity extends BaseActivity {
     public void onResume(){
         super.onResume();
         mDrawerToggle.syncState();
+        UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
+        UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
     @Override

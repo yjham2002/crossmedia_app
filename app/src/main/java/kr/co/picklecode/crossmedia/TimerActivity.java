@@ -1,10 +1,10 @@
 package kr.co.picklecode.crossmedia;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,16 +16,18 @@ import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.Date;
 
 import bases.BaseActivity;
 import bases.utils.AlarmBroadcastReceiver;
+import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.TimerItem;
 
 public class TimerActivity extends BaseActivity {
+
+    private Activity mActivity;
 
     private ImageView btn_back;
 
@@ -58,6 +60,7 @@ public class TimerActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mTimeReceiver,new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
+        UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
     @Override
@@ -75,8 +78,10 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void initView(){
-        if(AudienceSync.getInstance().isSchemeLoaded()){
-            AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        this.mActivity = this;
+
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
 
         refreshAd(true, false);
@@ -92,7 +97,13 @@ public class TimerActivity extends BaseActivity {
         btn_back = findViewById(R.id.btn_back_action);
 
         mRecyclerView = findViewById(R.id.recyclerView);
-        mAdapter = new TimerAdapter(this, R.layout.layout_timer);
+        mAdapter = new TimerAdapter(this, R.layout.layout_timer, new AdapterCall<TimerItem>() {
+            @Override
+            public void onCall(TimerItem article) {
+                UISyncManager.getInstance().syncTimerSet(mActivity, R.id.playing_timer);
+            }
+        });
+
         mRecyclerView.setAdapter(mAdapter);
         layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);

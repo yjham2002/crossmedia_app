@@ -38,7 +38,6 @@ import com.google.android.gms.ads.formats.NativeContentAdView;
 
 import java.util.List;
 
-import kr.co.picklecode.crossmedia.AudienceSync;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 

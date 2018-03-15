@@ -1,20 +1,16 @@
 package kr.co.picklecode.crossmedia;
 
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.NativeExpressAdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import bases.BaseActivity;
@@ -50,9 +46,10 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void initView(){
-        if(AudienceSync.getInstance().isSchemeLoaded()){
-            AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
+        UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
 
         refreshAd(true, false);
 
@@ -167,6 +164,7 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onResume(){
         super.onResume();
+        UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
     @Override
