@@ -46,9 +46,9 @@ import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDE
 
 public class MainActivity extends BaseActivity {
 
-    private ChannelScheme currentScheme;
-
     private TextView titleDisplay;
+
+    private ImageView _topBtn;
 
     private ProgressBar progress;
     private ProgressBar progressMain;
@@ -90,6 +90,8 @@ public class MainActivity extends BaseActivity {
         refreshAd(true, false);
 
         titleDisplay = findViewById(R.id.titleDisplay);
+
+        _topBtn = findViewById(R.id.top_btn);
 
         progress = findViewById(R.id.progress);
         progressMain = findViewById(R.id.progressMain);
@@ -141,6 +143,28 @@ public class MainActivity extends BaseActivity {
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if(newState != 0){
+                    _topBtn.setVisibility(View.VISIBLE);
+                }else{
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            _topBtn.setVisibility(View.INVISIBLE);
+                        }
+                    }, 3000);
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
+
         /**
          * Drawer Menu
          */
@@ -159,7 +183,7 @@ public class MainActivity extends BaseActivity {
 
         btn_favor = findViewById(R.id.top_fav);
 
-        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown);
+        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn);
 
         syncTimerState();
 
@@ -179,8 +203,6 @@ public class MainActivity extends BaseActivity {
         if(AudienceSync.getInstance().isSchemeLoaded()){
             AudienceSync.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
-
-        currentScheme = channelScheme;
 
         titleDisplay.setText(channelScheme.getTitle());
 
@@ -266,6 +288,10 @@ public class MainActivity extends BaseActivity {
     public void onClick(View v){
         Log.e(this.getClass().getSimpleName(), "onClick Called.");
         switch (v.getId()){
+            case R.id.top_btn:{
+                mRecyclerView.smoothScrollToPosition(0);
+                break;
+            }
             case R.id.btn_menu_action: {
                 openDrawer();
                 break;

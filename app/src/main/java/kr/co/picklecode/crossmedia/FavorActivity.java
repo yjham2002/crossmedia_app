@@ -1,5 +1,6 @@
 package kr.co.picklecode.crossmedia;
 
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -18,6 +19,8 @@ import bases.BaseActivity;
 import kr.co.picklecode.crossmedia.models.Article;
 
 public class FavorActivity extends BaseActivity {
+
+    private ImageView _topBtn;
 
     private ImageView btn_back;
 
@@ -49,6 +52,8 @@ public class FavorActivity extends BaseActivity {
 
         refreshAd(true, false);
 
+        _topBtn = findViewById(R.id.top_btn);
+
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
@@ -64,6 +69,28 @@ public class FavorActivity extends BaseActivity {
         layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if(newState != 0){
+                    _topBtn.setVisibility(View.VISIBLE);
+                }else{
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            _topBtn.setVisibility(View.INVISIBLE);
+                        }
+                    }, 3000);
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
 
         /**
          * Slider
@@ -89,7 +116,7 @@ public class FavorActivity extends BaseActivity {
             }
         });
 
-        setClick(btn_back, arrowDown);
+        setClick(btn_back, arrowDown, _topBtn);
 
         loadList();
     }
@@ -113,6 +140,10 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onClick(View v){
         switch (v.getId()){
+            case R.id.top_btn:{
+                mRecyclerView.smoothScrollToPosition(0);
+                break;
+            }
             case R.id.btn_back_action: {
                 finish();
                 break;

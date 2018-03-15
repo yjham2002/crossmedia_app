@@ -74,12 +74,23 @@
                     android:layout_height="match_parent">
                 </android.support.v7.widget.RecyclerView>
                 <ProgressBar
+                    android:visibility="invisible"
                     android:id="@+id/progressMain"
                     android:indeterminateTint="@color/colorPrimary"
                     android:indeterminateTintMode="src_in"
                     android:layout_gravity="center"
                     android:layout_width="30dp"
                     android:layout_height="30dp"></ProgressBar>
+                <ImageView
+                    android:id="@+id/top_btn"
+                    android:background="?selectableItemBackgroundBorderless"
+                    android:src="@drawable/btn_arrow_top"
+                    android:visibility="invisible"
+                    android:clickable="true"
+                    android:layout_margin="20dp"
+                    android:layout_gravity="right|bottom"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp" />
             </FrameLayout>
 
             <com.google.android.gms.ads.AdView
