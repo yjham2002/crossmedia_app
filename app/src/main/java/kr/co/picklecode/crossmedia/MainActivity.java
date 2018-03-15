@@ -137,7 +137,19 @@ public class MainActivity extends BaseActivity {
          * Channel Menu
          */
         mRecyclerView = findViewById(R.id.recyclerView);
-        mAdapter = new ArticleAdapter(this, R.layout.layout_article);
+        mAdapter = new ArticleAdapter(this, R.layout.layout_article, new AdapterCall<Article>(){
+            @Override
+            public void onCall(Article article) { // View Listener
+
+            }
+        });
+        mAdapter.setFavorCall(new AdapterCall<Article>() {
+            @Override
+            public void onCall(Article article) { // Favor Listener
+
+            }
+        });
+
         mRecyclerView.setAdapter(mAdapter);
         layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);

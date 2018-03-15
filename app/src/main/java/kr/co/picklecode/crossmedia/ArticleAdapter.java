@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.squareup.picasso.Picasso;
 
@@ -22,6 +23,8 @@ import kr.co.picklecode.crossmedia.models.Article;
 
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
 
+    private AdapterCall<Article> favorCall;
+
     public static final int HEADER = 3, DEFAULT = 0;
 
     public Context mContext = null;
@@ -29,11 +32,15 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public int item_layout;
     public int addition = 0;
 
-    private AdapterCall adapterCall;
+    private AdapterCall<Article> adapterCall;
 
     public ArticleAdapter(Context mContext, int item_layout, AdapterCall itemTouchCallback) {
         this(mContext, item_layout);
         this.adapterCall = itemTouchCallback;
+    }
+
+    public void setFavorCall(AdapterCall<Article> favorCall) {
+        this.favorCall = favorCall;
     }
 
     public ArticleAdapter(Context mContext, int item_layout) {
@@ -95,6 +102,15 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 }
             }
         });
+
+        holder.toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(favorCall != null){
+                    favorCall.onCall(mData);
+                }
+            }
+        });
     }
 
     @Override
@@ -106,6 +122,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         public ImageView _img;
         public TextView _title;
         public TextView _subTitle;
+        public ToggleButton toggleButton;
         public View view;
 
         public ViewHolder(View itemView) {
@@ -114,6 +131,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             _title = itemView.findViewById(R.id.title);
             _subTitle = itemView.findViewById(R.id.subTitle);
             view = itemView.findViewById(R.id.view);
+            toggleButton = itemView.findViewById(R.id.btn_fav);
         }
     }
 
