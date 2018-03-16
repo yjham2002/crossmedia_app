@@ -250,7 +250,7 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                 }finally {
 
-                    mAdapter.notifyDataSetChanged();
+                    mAdapter.dataChange();
                     progress.setVisibility(View.INVISIBLE);
                     progressMain.setVisibility(View.INVISIBLE);
                     // TODO Add Progressbar on the main list
@@ -369,6 +369,7 @@ public class MainActivity extends BaseActivity {
         mDrawerToggle.syncState();
         UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+        mAdapter.dataChange();
     }
 
     @Override
@@ -399,10 +400,14 @@ public class MainActivity extends BaseActivity {
     };
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ((keyCode == KeyEvent.KEYCODE_BACK)){
-            final Intent exitIntent = new Intent(MainActivity.this, ExitActivity.class);
-            startActivity(exitIntent);
-            overridePendingTransition(R.anim.alpha_in, R.anim.alpha_out);
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            if (controllableSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                return false;
+            } else {
+                final Intent exitIntent = new Intent(MainActivity.this, ExitActivity.class);
+                startActivity(exitIntent);
+                overridePendingTransition(R.anim.alpha_in, R.anim.alpha_out);
 //            if(!mFlag) {
 //                Toast.makeText(getApplicationContext(), "뒤로 버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
 //                mFlag = true;
@@ -412,6 +417,7 @@ public class MainActivity extends BaseActivity {
 //                finish();
 //                System.exit(0);
 //            }
+            }
         }
         return super.onKeyDown(keyCode, event);
     }

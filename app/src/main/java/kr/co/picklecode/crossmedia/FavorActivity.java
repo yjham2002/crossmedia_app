@@ -1,11 +1,13 @@
 package kr.co.picklecode.crossmedia;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ToggleButton;
@@ -144,7 +146,7 @@ public class FavorActivity extends BaseActivity {
             mAdapter.mListData.add(article);
         }
 
-        mAdapter.notifyDataSetChanged();
+        mAdapter.dataChange();
     }
 
     @Override
@@ -180,6 +182,17 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            if (controllableSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                return false;
+            } else {
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
 }

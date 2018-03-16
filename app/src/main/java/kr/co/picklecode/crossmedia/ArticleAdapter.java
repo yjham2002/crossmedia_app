@@ -70,6 +70,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
+
         final Article mData = mListData.get(position);
         switch (mData.getType()){
             default: {
@@ -98,6 +99,12 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 }
             }
         });
+
+        if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(mData.getId())){
+            holder.toggleButton.setChecked(true);
+        }else{
+            holder.toggleButton.setChecked(false);
+        }
 
         holder.toggleButton.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener(){
             @Override
@@ -143,6 +150,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     public void dataChange(){
+        FavorSQLManager.getInstance(mContext).refreshPrimaryKeySet();
         this.notifyDataSetChanged();
     }
 

@@ -2,10 +2,16 @@ package kr.co.picklecode.crossmedia;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
+import java.sql.PreparedStatement;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import bases.Constants;
@@ -23,6 +29,8 @@ public class FavorSQLManager extends SQLiteOpenHelper {
     private String imgPath;
     private String regDate;
     private String uptDate;
+
+    private Set<Integer> primaryKeySet;
 
     private FavorSQLManager(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -46,17 +54,23 @@ public class FavorSQLManager extends SQLiteOpenHelper {
 
     public void insert(Article article) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO tbl_Favor(`id`, `type`, `title`, `content`, `repPath`, `imgPath`, `regDate`, `upt_date`) " +
-                "VALUES(" +
-                "'" + article.getId() + "'," +
-                "'" + article.getType() + "'," +
-                "'" + article.getTitle() + "'," +
-                "'" + article.getContent() + "'," +
-                "'" + article.getRepPath() + "'," +
-                "'" + article.getImgPath() + "'," +
-                "'" + article.getRegDate() + "'," +
-                "'" + article.getUptDate() + "'" +
-                ");");
+        final String query = "INSERT INTO tbl_Favor(`id`, `type`, `title`, `content`, `repPath`, `imgPath`, `regDate`, `upt_date`) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?);";
+        final SQLiteStatement statement = db.compileStatement(query);
+        statement.bindLong(1, article.getId());
+        statement.bindLong(2, article.getType());
+        statement.bindString(3, article.getTitle());
+        statement.bindString(4, article.getContent());
+        statement.bindString(5, article.getRepPath());
+        statement.bindString(6, article.getImgPath());
+        statement.bindString(7, article.getRegDate());
+        statement.bindString(8, article.getUptDate());
+
+        try {
+            statement.executeInsert();
+        }catch (SQLiteConstraintException e){
+            Log.e(this.getClass().getSimpleName(), "Constraint Violation occurred. : " + article);
+        }
         db.close();
     }
 
@@ -64,6 +78,23 @@ public class FavorSQLManager extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM tbl_Favor WHERE `id`='" + id + "';");
         db.close();
+    }
+
+    public Set<Integer> refreshPrimaryKeySet(){
+        final Set<Integer> set = new HashSet<>();
+        final List<Article> articles = getResultOrderBy(null);
+        for(Article a : articles){
+            set.add(a.getId());
+        }
+
+        primaryKeySet = set;
+
+        return primaryKeySet;
+    }
+
+    public Set<Integer> getPrimaryKeySet(){
+        if(primaryKeySet == null) refreshPrimaryKeySet();
+        return primaryKeySet;
     }
 
     public List<Article> getResultOrderBy(String orderByStatement) {

@@ -8,12 +8,12 @@ public class Article {
 
     private int id;
     private int type;
-    private String title;
-    private String content;
-    private String repPath;
-    private String imgPath;
-    private String regDate;
-    private String uptDate;
+    private String title = "";
+    private String content = "";
+    private String repPath = "";
+    private String imgPath = "";
+    private String regDate = "";
+    private String uptDate = "";
 
     public Article() {}
 
