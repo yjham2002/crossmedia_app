@@ -93,6 +93,11 @@ public class UISyncManager {
         repeatingSyncHandler.removeCallbacks(repeatingRunnable);
     }
 
+    public void resetInitialized(){
+        this.isInitialized = false;
+        stopSyncText();
+    }
+
     public void syncCurrentText(Activity activity, int id){
         this.context = activity;
         this.currentText = id;

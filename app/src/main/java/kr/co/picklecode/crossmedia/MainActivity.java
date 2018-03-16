@@ -221,15 +221,20 @@ public class MainActivity extends BaseActivity {
         boolean init = false;
         if(page == 0 || page == 1) init = true;
 
+        if(!UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().setChannelScheme(channelScheme);
+        }
+
         if(init){
             currentPage = 1;
             totalPage = 0;
             totalCount = 0;
+            UISyncManager.getInstance().resetInitialized();
+            UISyncManager.getInstance().setChannelScheme(channelScheme);
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
 
         final boolean finalInitVar = init;
-
-        UISyncManager.getInstance().setChannelScheme(channelScheme);
 
         titleDisplay.setText(channelScheme.getTitle());
 
