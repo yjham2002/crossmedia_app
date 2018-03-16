@@ -100,22 +100,35 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             }
         });
 
-        if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(mData.getId())){
-            holder.toggleButton.setChecked(true);
-        }else{
-            holder.toggleButton.setChecked(false);
-        }
-
-        holder.toggleButton.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener(){
+        ToggleButton.OnCheckedChangeListener onCheckedChangeListener = new ToggleButton.OnCheckedChangeListener(){
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if(b){
                     FavorSQLManager.getInstance(mContext).insert(mData);
                 }else {
                     FavorSQLManager.getInstance(mContext).delete(mData.getId());
+                    if(mContext instanceof FavorActivity) {
+                        deleteItem(position);
+                    }
                 }
             }
-        });
+        };
+
+        if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(mData.getId())){
+            holder.toggleButton.setOnCheckedChangeListener(null);
+            holder.toggleButton.setChecked(true);
+        }else{
+            holder.toggleButton.setOnCheckedChangeListener(null);
+            holder.toggleButton.setChecked(false);
+        }
+
+        holder.toggleButton.setOnCheckedChangeListener(onCheckedChangeListener);
+    }
+
+    public void deleteItem(int pos){
+        mListData.remove(pos);
+        notifyItemRemoved(pos);
+        notifyItemRangeChanged(pos, getItemCount() - pos);
     }
 
     @Override
