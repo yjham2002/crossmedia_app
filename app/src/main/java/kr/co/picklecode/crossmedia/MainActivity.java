@@ -1,8 +1,10 @@
 package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -39,6 +42,9 @@ import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
+import kr.co.picklecode.crossmedia.observers.ObserverCallback;
+import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
+import kr.co.picklecode.crossmedia.services.MediaService;
 
 public class MainActivity extends BaseActivity {
 
@@ -69,7 +75,12 @@ public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
 
+    private SeekBar volumeSeekbar;
+    private AudioManager audioManager;
+
     private AdView mAdView;
+
+    private SettingsContentObserver mSettingsContentObserver;
 
     /**
      * Slider
@@ -81,14 +92,60 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         setContentView(R.layout.activity_main);
         setTitle("");
 
         init();
     }
 
+    private void initControls() {
+        mSettingsContentObserver = new SettingsContentObserver(this, new Handler(), new ObserverCallback() {
+            @Override
+            public void onNegativeCall(int volume) {
+                volumeSeekbar.setProgress(volume);
+            }
+            @Override
+            public void onPositiveCall(int volume) {
+                volumeSeekbar.setProgress(volume);
+            }
+        });
+
+        getApplicationContext().getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, mSettingsContentObserver );
+
+        try {
+            volumeSeekbar = findViewById(R.id.volumebar);
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            volumeSeekbar.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onStopTrackingTouch(SeekBar arg0) {
+                }
+                @Override
+                public void onStartTrackingTouch(SeekBar arg0) {
+                }
+                @Override
+                public void onProgressChanged(SeekBar arg0, int progress, boolean arg2) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                }
+            });
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
+    }
+
     private void init(){
         mContext = this;
+
+        initControls();
 
         refreshAd(true, false);
 
@@ -146,6 +203,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onCall(Article article) { // View Listener
                 showToast("View Clicked : " + article);
+                final Intent backgroundIntentCall = new Intent(MainActivity.this, MediaService.class);
+                startService(backgroundIntentCall);
             }
         });
 

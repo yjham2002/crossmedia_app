@@ -51,6 +51,8 @@
             </intent-filter>
         </receiver>
 
+        <service android:enabled="true" android:name="kr.co.picklecode.crossmedia.services.MediaService" />
+
     </application>
 
 </manifest>

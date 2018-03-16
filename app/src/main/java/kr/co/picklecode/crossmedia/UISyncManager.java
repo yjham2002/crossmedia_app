@@ -94,7 +94,7 @@ public class UISyncManager {
     }
 
     /**
-     * @author EuiJin.Ham [존나 삽질한 부분 ㅎㅎ]
+     * @author EuiJin.Ham
      * @description Detaching the handler to let the syncManager stop repeating and initializes the flag bit.
      * @caution must have to be used in an activity which has the sync target
      */
@@ -104,7 +104,7 @@ public class UISyncManager {
     }
 
     /**
-     * @author EuiJin.Ham [나중에 컨텍스트 지원하게 변경해야 됨 ......]
+     * @author EuiJin.Ham
      * As this class has been designed to singleton,
      * must have to set the params below whenever calling entirely.
      * @param activity Context to use with the sync handler

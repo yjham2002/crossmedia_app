@@ -5,7 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -26,6 +29,8 @@ import bases.BaseActivity;
 import bases.utils.AlarmBroadcastReceiver;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.TimerItem;
+import kr.co.picklecode.crossmedia.observers.ObserverCallback;
+import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
 
 public class TimerActivity extends BaseActivity {
 
@@ -49,6 +54,13 @@ public class TimerActivity extends BaseActivity {
     private ControllableSlidingLayout controllableSlidingLayout;
     private View slideAnchor;
     private ImageView arrowDown;
+
+    /**
+     * Audio Controls
+     */
+    private SeekBar volumeSeekbar;
+    private AudioManager audioManager;
+    private SettingsContentObserver mSettingsContentObserver;
 
     /**
      * Broadcast Receiver Test
@@ -80,13 +92,59 @@ public class TimerActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         setContentView(R.layout.activity_timer);
 
         initView();
     }
 
+    private void initControls() {
+        mSettingsContentObserver = new SettingsContentObserver(this, new Handler(), new ObserverCallback() {
+            @Override
+            public void onNegativeCall(int volume) {
+                volumeSeekbar.setProgress(volume);
+            }
+            @Override
+            public void onPositiveCall(int volume) {
+                volumeSeekbar.setProgress(volume);
+            }
+        });
+
+        getApplicationContext().getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, mSettingsContentObserver );
+
+        try {
+            volumeSeekbar = findViewById(R.id.volumebar);
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            volumeSeekbar.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onStopTrackingTouch(SeekBar arg0) {
+                }
+                @Override
+                public void onStartTrackingTouch(SeekBar arg0) {
+                }
+                @Override
+                public void onProgressChanged(SeekBar arg0, int progress, boolean arg2) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                }
+            });
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
+    }
+
     private void initView(){
         this.mActivity = this;
+
+        initControls();
 
         playingTimer = findViewById(R.id.playing_timer);
 
