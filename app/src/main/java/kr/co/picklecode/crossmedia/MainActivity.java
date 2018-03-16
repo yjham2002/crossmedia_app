@@ -172,6 +172,10 @@ public class MainActivity extends BaseActivity {
                 }else{
                     topBtnHandler.postDelayed(topBtnRun, 3000);
                 }
+
+                if (!mRecyclerView.canScrollVertically(1)) {
+                    if(currentPage < totalPage && !isLoading) loadList(UISyncManager.getInstance().getChannelScheme(), ++currentPage);
+                }
             }
 
             @Override
@@ -187,7 +191,7 @@ public class MainActivity extends BaseActivity {
         mAdapterMenu = new SchemeAdapter(this, R.layout.layout_scheme, new AdapterCall<ChannelScheme>(){
             @Override
             public void onCall(ChannelScheme article) {
-                loadList(article);
+                loadList(article, 1);
             }
         });
 
@@ -207,34 +211,46 @@ public class MainActivity extends BaseActivity {
         showPlayerNotification();
     }
 
-    private void loadList(ChannelScheme channelScheme){
+    private int currentPage = 1;
+    private int totalPage = 0;
+    private int totalCount = 0;
+    private boolean isLoading = false;
 
-        showToast(channelScheme.toString());
+    private void loadList(ChannelScheme channelScheme, int page){
+
+        boolean init = false;
+        if(page == 0 || page == 1) init = true;
+
+        if(init){
+            currentPage = 1;
+            totalPage = 0;
+            totalCount = 0;
+        }
+
+        final boolean finalInitVar = init;
 
         UISyncManager.getInstance().setChannelScheme(channelScheme);
 
-        if(UISyncManager.getInstance().isSchemeLoaded()){
-            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
-        }
-
         titleDisplay.setText(channelScheme.getTitle());
 
+        isLoading = true;
         progress.setVisibility(View.VISIBLE);
         progressMain.setVisibility(View.VISIBLE);
-        mAdapter.mListData.clear();
+        if(init) mAdapter.mListData.clear();
 
         Map<String, Object> params = new HashMap<>();
         params.put("ap_id", 374);
         params.put("cg_id", channelScheme.getId());
+        params.put("page", page);
         SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/video_list.php", params, new SimpleCall.CallBack() {
             @Override
             public void handle(JSONObject jsonObject) {
                 try {
                     final JSONObject result = jsonObject.getJSONObject("result");
                     final JSONArray json_arr  = result.getJSONArray("list");
-                    final int totalCount = result.getInt("total_count");
-                    final int totalPage = result.getInt("total_page");
-                    final int currentPage = result.getInt("page");
+                    totalCount = result.getInt("total_count");
+                    totalPage = result.getInt("total_page");
+                    currentPage = result.getInt("page");
 
                     for(int i = 0; i < json_arr.length(); i++){
                         JSONObject object = json_arr.getJSONObject(i);
@@ -249,10 +265,13 @@ public class MainActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
-
                     mAdapter.dataChange();
                     progress.setVisibility(View.INVISIBLE);
                     progressMain.setVisibility(View.INVISIBLE);
+                    isLoading = false;
+                    if(finalInitVar){
+                        mRecyclerView.smoothScrollToPosition(0);
+                    }
                     // TODO Add Progressbar on the main list
                 }
             }
@@ -283,7 +302,7 @@ public class MainActivity extends BaseActivity {
                         article.setCg_cur(object.getInt("cg_current"));
                         mAdapterMenu.mListData.add(article);
                         if(i == 0){
-                            loadList(article);
+                            loadList(article, 1);
                         }
                     }
                 } catch (JSONException e) {
@@ -367,6 +386,10 @@ public class MainActivity extends BaseActivity {
     public void onResume(){
         super.onResume();
         mDrawerToggle.syncState();
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        }
+
         UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
         mAdapter.dataChange();
@@ -375,6 +398,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
+        UISyncManager.getInstance().stopSyncText();
     }
 
     @Override

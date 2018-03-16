@@ -53,9 +53,6 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void initView(){
-        if(UISyncManager.getInstance().isSchemeLoaded()){
-            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
-        }
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
 
         playingTimer = findViewById(R.id.playing_timer);
@@ -176,12 +173,18 @@ public class FavorActivity extends BaseActivity {
     @Override
     public void onResume(){
         super.onResume();
+
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        }
+
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        UISyncManager.getInstance().stopSyncText();
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {

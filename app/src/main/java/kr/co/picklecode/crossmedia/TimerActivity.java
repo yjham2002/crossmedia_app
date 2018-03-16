@@ -64,6 +64,9 @@ public class TimerActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mTimeReceiver,new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
+        if(UISyncManager.getInstance().isSchemeLoaded()){
+            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
+        }
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
@@ -71,6 +74,7 @@ public class TimerActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mTimeReceiver);
+        UISyncManager.getInstance().stopSyncText();
     }
 
     @Override
@@ -83,10 +87,6 @@ public class TimerActivity extends BaseActivity {
 
     private void initView(){
         this.mActivity = this;
-
-        if(UISyncManager.getInstance().isSchemeLoaded()){
-            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
-        }
 
         playingTimer = findViewById(R.id.playing_timer);
 

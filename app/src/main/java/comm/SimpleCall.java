@@ -3,6 +3,7 @@ package comm;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -50,6 +51,9 @@ public class SimpleCall {
             stringBuffer.append(key + "=" + queryParam.get(key) + "&");
         }
         final String newUrl = url + "?" + stringBuffer;
+
+        Log.e("RequestURL", newUrl);
+
         getHttp(newUrl, new Handler(){
             @Override
             public void handleMessage(Message msg) {
