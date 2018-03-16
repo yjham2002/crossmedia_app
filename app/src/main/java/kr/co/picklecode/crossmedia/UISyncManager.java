@@ -93,19 +93,33 @@ public class UISyncManager {
         repeatingSyncHandler.removeCallbacks(repeatingRunnable);
     }
 
+    /**
+     * @author EuiJin.Ham [존나 삽질한 부분 ㅎㅎ]
+     * @description Detaching the handler to let the syncManager stop repeating and initializes the flag bit.
+     * @caution must have to be used in an activity which has the sync target
+     */
     public void resetInitialized(){
         this.isInitialized = false;
         stopSyncText();
     }
 
+    /**
+     * @author EuiJin.Ham [나중에 컨텍스트 지원하게 변경해야 됨 ......]
+     * As this class has been designed to singleton,
+     * must have to set the params below whenever calling entirely.
+     * @param activity Context to use with the sync handler
+     * @param id Resource View ID
+     */
     public void syncCurrentText(Activity activity, int id){
+        // TODO : Make this method compatible with any context-extended classes
+        // Not on this Project
         this.context = activity;
         this.currentText = id;
         syncCurrentTextInternal(activity, id, !isInitialized);
-        repeatingSyncHandler.postDelayed(repeatingRunnable, syncInterval);
+        repeatingSyncHandler.postDelayed(repeatingRunnable, syncInterval); // Continuous Calling - SyncHandler
     }
 
-    private void syncCurrentTextInternal(Activity activity, int id, boolean initialize){
+    private void syncCurrentTextInternal(Activity activity, int id, boolean initialize){ // Internal Function Method
         if(activity.findViewById(id) != null){
             if(activity.findViewById(id) instanceof TextView){
                 final int newVal = getRandomCount(initialize);
