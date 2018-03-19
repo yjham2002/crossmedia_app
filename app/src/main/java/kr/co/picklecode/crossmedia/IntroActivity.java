@@ -35,8 +35,25 @@ public class IntroActivity extends BaseActivity {
     }
 
     private void init(){
+
         this.intentHandler = new Handler();
-        this.intentHandler.postDelayed(introRunnable, INTRO_DEFAULT_DELAY);
+        final boolean isDrawable = canDrawOverlaysTest();
+
+        if(isDrawable) {
+            this.intentHandler.postDelayed(introRunnable, INTRO_DEFAULT_DELAY);
+        }else{
+            showToast("앱 실행에 필요한 권한에 동의하시기 바랍니다.");
+            canDrawOverlaysTest();
+        }
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final boolean isPermitted = onPermissionActivityResult(requestCode);
+        if(isPermitted) {
+            this.intentHandler.postDelayed(introRunnable, INTRO_DEFAULT_DELAY);
+        }
     }
 
     @Override

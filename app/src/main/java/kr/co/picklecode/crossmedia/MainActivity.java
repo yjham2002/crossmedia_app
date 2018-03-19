@@ -1,12 +1,15 @@
 package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -19,10 +22,12 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
@@ -38,6 +43,7 @@ import java.util.Map;
 
 import bases.BaseActivity;
 
+import bases.BaseApp;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
@@ -47,6 +53,9 @@ import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
 import kr.co.picklecode.crossmedia.services.MediaService;
 
 public class MainActivity extends BaseActivity {
+
+    private boolean mBounded;
+    private MediaService mServer;
 
     private Activity mContext;
 
@@ -74,6 +83,25 @@ public class MainActivity extends BaseActivity {
     private ImageView btn_menu_top; // Menu Buttons
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
+
+    /**
+     * Player Component
+     */
+    private TextView playing_title;
+    private TextView playing_sub;
+    private TextView bottom_title;
+    private ToggleButton playing_control;
+    private ToggleButton bottom_toggle;
+    private ToggleButton.OnCheckedChangeListener playerControlListener = new ToggleButton.OnCheckedChangeListener(){
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if(b){
+                resumeMusic();
+            }else {
+                stopMusic();
+            }
+        }
+    };
 
     private SeekBar volumeSeekbar;
     private AudioManager audioManager;
@@ -142,6 +170,47 @@ public class MainActivity extends BaseActivity {
         getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
     }
 
+    private void startMusic(Article article){
+        try {
+            mServer.startVideo(article);
+        }catch (IllegalArgumentException e){
+            showToast("로드할 수 없습니다.");
+        }
+        notifyPlayerInfoChanged();
+    }
+
+    private void resumeMusic() throws IllegalStateException{
+        final Article article = mServer.getNowPlaying();
+        startMusic(article);
+        if(article == null) throw new IllegalStateException();
+
+        notifyPlayerInfoChanged();
+    }
+
+    private void notifyPlayerInfoChanged(){
+        if(mServer != null && mServer.getNowPlaying() != null){
+            final Article article = mServer.getNowPlaying();
+
+            bottom_title.setText(article.getTitle());
+            playing_title.setText(article.getTitle());
+            playing_sub.setText(article.getContent());
+
+            playing_control.setOnCheckedChangeListener(null);
+            bottom_toggle.setOnCheckedChangeListener(null);
+
+            playing_control.setChecked(mServer.isPlaying());
+            bottom_toggle.setChecked(mServer.isPlaying());
+
+            playing_control.setOnCheckedChangeListener(playerControlListener);
+            bottom_toggle.setOnCheckedChangeListener(playerControlListener);
+        }
+    }
+
+    private void stopMusic(){
+        mServer.stopMedia();
+        notifyPlayerInfoChanged();
+    }
+
     private void init(){
         mContext = this;
 
@@ -150,6 +219,12 @@ public class MainActivity extends BaseActivity {
         refreshAd(true, false);
 
         playingTimer = findViewById(R.id.playing_timer);
+
+        playing_title = findViewById(R.id.playing_title);
+        bottom_title = findViewById(R.id.bottom_title);
+        playing_sub = findViewById(R.id.playing_sub);
+        playing_control = findViewById(R.id.playing_control);
+        bottom_toggle = findViewById(R.id.toggle);
 
         titleDisplay = findViewById(R.id.titleDisplay);
 
@@ -202,9 +277,8 @@ public class MainActivity extends BaseActivity {
         mAdapter = new ArticleAdapter(this, R.layout.layout_article, new AdapterCall<Article>(){
             @Override
             public void onCall(Article article) { // View Listener
-                showToast("View Clicked : " + article);
-                final Intent backgroundIntentCall = new Intent(MainActivity.this, MediaService.class);
-                startService(backgroundIntentCall);
+                // TODO
+                startMusic(article);
             }
         });
 
@@ -261,13 +335,15 @@ public class MainActivity extends BaseActivity {
 
         btn_favor = findViewById(R.id.top_fav);
 
-        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn, playingTimer);
+        setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn, playingTimer, playing_control, playing_sub, playing_title);
 
         loadInterstitialAd();
 
         loadMenuList();
 
         showPlayerNotification();
+
+        notifyPlayerInfoChanged();
     }
 
     private int currentPage = 1;
@@ -420,6 +496,32 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            showToast("disconnected");
+            mBounded = false;
+            mServer = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            showToast("Connected");
+            mBounded = true;
+            MediaService.LocalBinder mLocalBinder = (MediaService.LocalBinder)service;
+            mServer = mLocalBinder.getServiceInstance();
+        }
+    };
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mBounded) {
+            unbindService(mConnection);
+            mBounded = false;
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -437,6 +539,9 @@ public class MainActivity extends BaseActivity {
             actionBar.setDisplayUseLogoEnabled(false);
             actionBar.setHomeButtonEnabled(true);
         }
+
+        final Intent backgroundIntentCall = new Intent(getBaseContext(), MediaService.class);
+        bindService(backgroundIntentCall, mConnection, BIND_AUTO_CREATE);
     }
 
     @Override
