@@ -66,6 +66,17 @@ public class Constants {
                 "  </body>\n" +
                 "</html>";
 
+//        function getStarted(){
+//            if(player.getPlayerState() === -1 || player.getPlayerState() === 0 || player.getPlayerState() === 5){
+//                play();
+//                window.setTimeout(
+//                        getStarted, 1000
+//                )
+//            }
+//            else
+//                return;
+//        }
+
         return source;
     }
 

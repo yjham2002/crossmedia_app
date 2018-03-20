@@ -185,7 +185,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
             }
         });
 
-        AdRequest adRequest = new AdRequest.Builder().addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").build();
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").addTestDevice("A054380EE96401ECDEB88482E433AEF2").build();
         mInterstitialAd.loadAd(adRequest);
     }
 
@@ -379,7 +379,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
             }
         }).build();
 
-        adLoader.loadAd(new AdRequest.Builder().addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").build());
+        adLoader.loadAd(new AdRequest.Builder().addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").addTestDevice("A054380EE96401ECDEB88482E433AEF2").build());
     }
 
     /**

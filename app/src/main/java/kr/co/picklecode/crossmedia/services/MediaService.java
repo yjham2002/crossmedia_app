@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import java.io.IOException;
@@ -34,6 +36,10 @@ public class MediaService extends Service implements View.OnClickListener{
     private WindowManager mManager;
     private IBinder mBinder = new LocalBinder();
 
+    public interface VideoCallBack{
+        void onCall();
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -49,7 +55,7 @@ public class MediaService extends Service implements View.OnClickListener{
         return nowPlaying;
     }
 
-    public void startVideo(Article article) throws IllegalArgumentException{
+    public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
         if(article == null) throw new IllegalArgumentException();
 
         this.nowPlaying = article;
@@ -73,6 +79,9 @@ public class MediaService extends Service implements View.OnClickListener{
             public void run() {
                 webView.loadUrl("javascript:player.playVideo();");
                 isPlaying = true;
+                if(videoCallBack != null){
+                    videoCallBack.onCall();
+                }
             }
         }, 1500);
     }
@@ -104,8 +113,13 @@ public class MediaService extends Service implements View.OnClickListener{
         webView.setOnClickListener(this);
 
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.getSettings().setPluginState(WebSettings.PluginState.ON);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
+        webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);
         webView.setBackgroundColor(0);
 
         mManager.addView(mView, mParams);
@@ -116,7 +130,7 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public void stopMedia(){
-        webView.loadUrl("about:blank");
+        webView.loadUrl("javascript:player.pauseVideo();");
         isPlaying = false;
     }
 

@@ -171,12 +171,26 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startMusic(Article article){
-        try {
-            mServer.startVideo(article);
-        }catch (IllegalArgumentException e){
-            showToast("로드할 수 없습니다.");
+        if(isNetworkEnable()) {
+            try {
+                mServer.startVideo(article, new MediaService.VideoCallBack() {
+                    @Override
+                    public void onCall() {
+                        if(!isNetworkEnable()){
+                            mServer.stopMedia();
+                            showToast("네트워크에 연결할 수 없습니다.");
+                        }
+                        notifyPlayerInfoChanged();
+                    }
+                });
+
+            } catch (IllegalArgumentException e) {
+                showToast("로드할 수 없습니다.");
+            }
+            notifyPlayerInfoChanged();
+        }else {
+            showToast("네트워크에 연결할 수 없습니다.");
         }
-        notifyPlayerInfoChanged();
     }
 
     private void resumeMusic() throws IllegalStateException{
@@ -236,7 +250,7 @@ public class MainActivity extends BaseActivity {
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2")
+                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").addTestDevice("A054380EE96401ECDEB88482E433AEF2")
                 .build();
         mAdView.loadAd(adRequest);
 

@@ -119,7 +119,7 @@ public class FavorActivity extends BaseActivity {
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2")
+                .addTestDevice("580AF1AB9D6734064E03DF3C086DB1B2").addTestDevice("A054380EE96401ECDEB88482E433AEF2")
                 .build();
         mAdView.loadAd(adRequest);
 
