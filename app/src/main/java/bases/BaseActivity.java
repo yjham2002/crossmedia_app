@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -80,7 +82,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
                     public void run() {
                         System.exit(0);
                     }
-                }, 1000);
+                }, 4000);
             }
         }
         return false;
@@ -103,6 +105,17 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     }
 
     private void commonInit(){
+    }
+
+    protected boolean isNetworkEnable(){
+        ConnectivityManager cm =
+                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        return isConnected;
     }
 
     protected void showPlayerNotification(){

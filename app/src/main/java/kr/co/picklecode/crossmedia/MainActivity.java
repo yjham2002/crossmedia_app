@@ -339,6 +339,16 @@ public class MainActivity extends BaseActivity {
 
         loadInterstitialAd();
 
+        if(!isNetworkEnable()){
+            showToast("네트워크에 연결할 수 없어 앱을 종료합니다.");
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    System.exit(0);
+                }
+            }, 4000);
+        }
+
         loadMenuList();
 
         showPlayerNotification();
