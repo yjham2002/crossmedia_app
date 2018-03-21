@@ -165,6 +165,14 @@ public class TimerActivity extends BaseActivity {
             @Override
             public void onCall(TimerItem article) {
                 UISyncManager.getInstance().syncTimerSet(mActivity, R.id.playing_timer);
+                if(!article.isCancel()) {
+                    final int inHour = article.getTimeInMins() / 60;
+                    final int leftMin = article.getTimeInMins() - (inHour * 60);
+                    final String timeString = String.format("%02d:%02d:00", inHour, leftMin);
+                    showToast(timeString + " 후에 음악방송 재생이 중지됩니다.");
+                }else{
+                    showToast("슬립타이머 설정이 취소되었습니다.");
+                }
             }
         });
 

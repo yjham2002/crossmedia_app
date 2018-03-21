@@ -444,6 +444,10 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                 }finally {
                     if(mAdapter.mListData.size() > 0) {
+                        /**
+                         * Must have to be located above the notifyDataSetChanged().
+                         * cause, the marking process need to be ran after the service-now-playing setting process.
+                         */
                         if(UISyncManager.getInstance().getService().isInitialRunning()) {
                             mAdapter.setClickedPos(0);
                             startMusic(mAdapter.mListData.get(0), false);

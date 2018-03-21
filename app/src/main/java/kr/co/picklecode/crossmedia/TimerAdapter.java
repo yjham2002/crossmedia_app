@@ -82,10 +82,9 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
                 if(mData.isCancel()){
                     PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, false);
                 }else{
-                    AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000);
+                    AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60);
                     PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, true);
                 }
-//                AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60); // Need to be activated :(
                 if(adapterCall != null){
                     adapterCall.onCall(mData);
                 }
