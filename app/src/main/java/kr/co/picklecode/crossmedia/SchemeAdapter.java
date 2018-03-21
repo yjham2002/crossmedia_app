@@ -2,6 +2,7 @@ package kr.co.picklecode.crossmedia;
 
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -64,16 +65,25 @@ public class SchemeAdapter extends RecyclerView.Adapter<SchemeAdapter.ViewHolder
         return new ViewHolder(v);
     }
 
+    private int clickedPos = 0;
+
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final ChannelScheme mData = mListData.get(position);
 
         holder._title.setText(mData.getTitle());
         holder._title.setSelected(true);
+        if(position == clickedPos) {
+            holder._title.setTypeface(null, Typeface.BOLD);
+        }else{
+            holder._title.setTypeface(null, Typeface.NORMAL);
+        }
 
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
             public void onClick(View v) {
+                clickedPos = holder.getAdapterPosition();
+                notifyDataSetChanged();
                 if(adapterCall != null){
                     adapterCall.onCall(mData);
                 }

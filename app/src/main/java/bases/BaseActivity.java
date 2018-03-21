@@ -118,54 +118,6 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         return isConnected;
     }
 
-    protected void showPlayerNotification(){
-        NotificationCompat.Builder mBuilder = createNotification();
-
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.player_notification_layout);
-        remoteViews.setImageViewResource(R.id.noti_img, R.mipmap.ic_launcher);
-        remoteViews.setTextViewText(R.id.noti_title, "Title");
-        remoteViews.setTextViewText(R.id.noti_sub, "message");
-
-        mBuilder.setContent(remoteViews);
-        mBuilder.setContentIntent(createPendingIntent());
-        mBuilder.setOngoing(true);
-
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(20180312, mBuilder.build());
-
-    }
-
-    private PendingIntent createPendingIntent(){
-        Intent resultIntent = new Intent(this, MainActivity.class);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        return stackBuilder.getPendingIntent(
-                0,
-                PendingIntent.FLAG_UPDATE_CURRENT
-        );
-    }
-
-    private NotificationCompat.Builder createNotification(){
-        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(icon)
-                .setContentTitle("StatusBar Title")
-                .setContentText("StatusBar subTitle")
-                .setSmallIcon(R.mipmap.ic_launcher/*스와이프 전 아이콘*/)
-                .setAutoCancel(true)
-                .setWhen(System.currentTimeMillis())
-                .setDefaults(Notification.DEFAULT_ALL);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            builder.setCategory(Notification.CATEGORY_MESSAGE)
-                    .setPriority(Notification.PRIORITY_HIGH)
-                    .setVisibility(Notification.VISIBILITY_PUBLIC);
-        }
-        return builder;
-    }
-
     protected void loadInterstitialAd() {
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-1846833106939117/2370912396");

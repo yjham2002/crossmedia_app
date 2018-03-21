@@ -1,8 +1,16 @@
 package kr.co.picklecode.crossmedia.services;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -19,12 +27,16 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.RemoteViews;
 
 import java.io.IOException;
 
 import bases.Constants;
+import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 import kr.co.picklecode.crossmedia.models.Article;
+
+import static android.app.NotificationManager.IMPORTANCE_HIGH;
 
 /**
  * Created by HP on 2018-03-16.
@@ -33,6 +45,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     private boolean isPlaying = false;
 
+    private boolean isInitialRunning = true;
     private Article nowPlaying;
     private View mView;
     private WebView webView;
@@ -41,6 +54,14 @@ public class MediaService extends Service implements View.OnClickListener{
 
     public interface VideoCallBack{
         void onCall();
+    }
+
+    public boolean isInitialRunning() {
+        return isInitialRunning;
+    }
+
+    public void setInitialRunning(boolean initialRunning) {
+        isInitialRunning = initialRunning;
     }
 
     @Override
@@ -167,7 +188,74 @@ public class MediaService extends Service implements View.OnClickListener{
 
         Log.e("MediaService", "onCreate : webView initialized.");
 
+        showPlayerNotification();
+
         mManager.addView(mView, mParams);
+    }
+
+    protected void showPlayerNotification(){
+        Notification.Builder mBuilder = createNotification();
+
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.player_notification_layout);
+        remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
+        remoteViews.setTextViewText(R.id.noti_title, "Title");
+        remoteViews.setTextViewText(R.id.noti_sub, "message");
+
+        mBuilder.setContent(remoteViews);
+        mBuilder.setContentIntent(createPendingIntent());
+        mBuilder.setOngoing(true);
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        mNotificationManager.notify(20180312, mBuilder.build());
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID, Constants.NOTIFICATION_CHANNEL_NAME, IMPORTANCE_HIGH);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setShowBadge(true);
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            notificationChannel.setSound(null, null);
+            mNotificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        startForeground(20180312, mBuilder.build());
+    }
+
+    private PendingIntent createPendingIntent(){
+        Intent resultIntent = new Intent(this, MainActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        return stackBuilder.getPendingIntent(
+                0,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+    }
+
+    private Notification.Builder createNotification(){
+        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+        Notification.Builder builder;
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+            builder = new Notification.Builder(this, Constants.NOTIFICATION_CHANNEL_ID);
+        }else{
+            builder = new Notification.Builder(this);
+        }
+
+        builder
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(icon)
+                .setContentTitle("StatusBar Title")
+                .setContentText("StatusBar subTitle")
+                .setAutoCancel(true)
+                .setWhen(System.currentTimeMillis())
+                .setDefaults(Notification.DEFAULT_ALL);
+//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+//            builder.setCategory(Notification.CATEGORY_MESSAGE)
+//                    .setPriority(Notification.PRIORITY_HIGH)
+//                    .setVisibility(Notification.VISIBILITY_PUBLIC);
+//        }
+        return builder;
     }
 
     public boolean isPlaying(){

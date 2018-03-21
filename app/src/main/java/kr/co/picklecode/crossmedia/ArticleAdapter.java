@@ -2,6 +2,7 @@ package kr.co.picklecode.crossmedia;
 
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -68,8 +69,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         return new ViewHolder(v);
     }
 
+    private int clickedPos = 0;
+
+    public void setClickedPos(int clickedPos) {
+        this.clickedPos = clickedPos;
+    }
+
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         final Article mData = mListData.get(position);
         switch (mData.getType()){
@@ -87,6 +94,13 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                     .transform(new RoundedTransform(10, 0)).into(holder._img);
         }
         holder._title.setText(mData.getTitle());
+
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null && UISyncManager.getInstance().getService().getNowPlaying().getId() == mData.getId()){
+            holder._title.setTypeface(null, Typeface.BOLD);
+        }else{
+            holder._title.setTypeface(null, Typeface.NORMAL);
+        }
+
         holder._subTitle.setText(mData.getContent());
         holder._title.setSelected(true);
         holder._subTitle.setSelected(true);
@@ -97,6 +111,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 if(adapterCall != null){
                     adapterCall.onCall(mData);
                 }
+                clickedPos = holder.getAdapterPosition();
+                notifyDataSetChanged();
             }
         });
 

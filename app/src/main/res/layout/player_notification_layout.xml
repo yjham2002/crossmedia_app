@@ -62,16 +62,16 @@
                 android:id="@+id/noti_play"
                 android:clickable="true"
                 android:src="@drawable/btn_play_noti"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
                 />
             <ImageView
                 android:visibility="invisible"
                 android:id="@+id/noti_pause"
                 android:clickable="true"
                 android:src="@drawable/btn_pause_noti"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
                 />
         </FrameLayout>
 
@@ -80,8 +80,8 @@
             android:clickable="true"
             android:layout_marginRight="10dp"
             android:src="@drawable/btn_close_noti"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             />
     </LinearLayout>
 

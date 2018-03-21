@@ -176,7 +176,7 @@ public class MainActivity extends BaseActivity {
         getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
     }
 
-    private void startMusic(Article article){
+    private void startMusic(Article article, final boolean openSider){
         if(isNetworkEnable()) {
             try {
                 UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
@@ -187,6 +187,7 @@ public class MainActivity extends BaseActivity {
                             showToast("네트워크에 연결할 수 없습니다.");
                         }
                         notifyPlayerInfoChanged();
+                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     }
                 });
 
@@ -201,7 +202,7 @@ public class MainActivity extends BaseActivity {
 
     private void resumeMusic() throws IllegalStateException{
         final Article article = UISyncManager.getInstance().getService().getNowPlaying();
-        startMusic(article);
+        startMusic(article, true);
         if(article == null) throw new IllegalStateException();
 
         notifyPlayerInfoChanged();
@@ -307,7 +308,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onCall(Article article) { // View Listener
                 // TODO
-                startMusic(article);
+                startMusic(article, true);
             }
         });
 
@@ -380,8 +381,6 @@ public class MainActivity extends BaseActivity {
 
         loadMenuList();
 
-        showPlayerNotification();
-
         notifyPlayerInfoChanged();
     }
 
@@ -444,6 +443,14 @@ public class MainActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
+                    if(mAdapter.mListData.size() > 0) {
+                        if(UISyncManager.getInstance().getService().isInitialRunning()) {
+                            mAdapter.setClickedPos(0);
+                            startMusic(mAdapter.mListData.get(0), false);
+                            UISyncManager.getInstance().getService().setInitialRunning(false);
+                        }
+                    }
+
                     mAdapter.dataChange();
                     progress.setVisibility(View.INVISIBLE);
                     progressMain.setVisibility(View.INVISIBLE);
@@ -451,7 +458,6 @@ public class MainActivity extends BaseActivity {
                     if(finalInitVar){
                         mRecyclerView.smoothScrollToPosition(0);
                     }
-                    // TODO Add Progressbar on the main list
                 }
             }
         });
