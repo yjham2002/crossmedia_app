@@ -14,8 +14,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import java.io.IOException;
 
@@ -56,6 +59,7 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
+        Log.e("MediaService", "startVideo Invoked.");
         if(article == null) throw new IllegalArgumentException();
 
         this.nowPlaying = article;
@@ -72,18 +76,20 @@ public class MediaService extends Service implements View.OnClickListener{
             throw new IllegalArgumentException();
         }
 
-        webView.loadData(Constants.getYoutubeSrc(filtered), "text/html", "UTF-8");
+        webView.loadUrl(Constants.BASE_YOUTUBE_URL + filtered);
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                webView.loadUrl("javascript:player.playVideo();");
                 isPlaying = true;
                 if(videoCallBack != null){
                     videoCallBack.onCall();
                 }
             }
-        }, 1500);
+        }, 1200);
+
+//        webView.loadData(Constants.getYoutubeSrc(filtered), "text/html", "UTF-8");
+//
     }
 
     @Override
@@ -112,6 +118,42 @@ public class MediaService extends Service implements View.OnClickListener{
 
         webView.setOnClickListener(this);
 
+        webView.setWebViewClient(new WebViewClient(){
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith("pickle://")) {
+                    Log.e("webView", url);
+                    return true;
+                }else {
+                    if(url.startsWith("javascript")){
+                        Log.e("webView", url);
+                        return false;
+                    }
+                }
+                return super.shouldOverrideUrlLoading(view, url);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                if(url.indexOf(Constants.BASE_YOUTUBE_URL) != -1){
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            webView.loadUrl("javascript:player.playVideo();");
+                        }
+                    }, 1000);
+                }
+                super.onPageFinished(view, url);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                isPlaying = false;
+                stopMedia();
+                super.onReceivedError(view, request, error);
+            }
+        });
+
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.setWebChromeClient(new WebChromeClient());
@@ -121,6 +163,9 @@ public class MediaService extends Service implements View.OnClickListener{
         webView.setVerticalScrollBarEnabled(false);
         webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);
         webView.setBackgroundColor(0);
+        webView.loadUrl("http://zacchaeus151.cafe24.com/youtube.php?vid=GjCEH-KZq2c");
+
+        Log.e("MediaService", "onCreate : webView initialized.");
 
         mManager.addView(mView, mParams);
     }
@@ -131,6 +176,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     public void stopMedia(){
         webView.loadUrl("javascript:player.pauseVideo();");
+        Log.e("MediaService", "stopMedia Invoked.");
         isPlaying = false;
     }
 

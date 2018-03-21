@@ -33,6 +33,7 @@ import android.widget.ToggleButton;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,6 +45,7 @@ import java.util.Map;
 import bases.BaseActivity;
 
 import bases.BaseApp;
+import bases.imageTransform.RoundedTransform;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
@@ -55,7 +57,6 @@ import kr.co.picklecode.crossmedia.services.MediaService;
 public class MainActivity extends BaseActivity {
 
     private boolean mBounded;
-    private MediaService mServer;
 
     private Activity mContext;
 
@@ -87,6 +88,7 @@ public class MainActivity extends BaseActivity {
     /**
      * Player Component
      */
+    private ImageView playing_thumb;
     private TextView playing_title;
     private TextView playing_sub;
     private TextView bottom_title;
@@ -96,7 +98,11 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             if(b){
-                resumeMusic();
+                try {
+                    resumeMusic();
+                }catch (IllegalStateException e){
+                    notifyPlayerInfoChanged();
+                }
             }else {
                 stopMusic();
             }
@@ -173,11 +179,11 @@ public class MainActivity extends BaseActivity {
     private void startMusic(Article article){
         if(isNetworkEnable()) {
             try {
-                mServer.startVideo(article, new MediaService.VideoCallBack() {
+                UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
                     @Override
                     public void onCall() {
                         if(!isNetworkEnable()){
-                            mServer.stopMedia();
+                            UISyncManager.getInstance().getService().stopMedia();
                             showToast("네트워크에 연결할 수 없습니다.");
                         }
                         notifyPlayerInfoChanged();
@@ -194,7 +200,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void resumeMusic() throws IllegalStateException{
-        final Article article = mServer.getNowPlaying();
+        final Article article = UISyncManager.getInstance().getService().getNowPlaying();
         startMusic(article);
         if(article == null) throw new IllegalStateException();
 
@@ -202,8 +208,16 @@ public class MainActivity extends BaseActivity {
     }
 
     private void notifyPlayerInfoChanged(){
-        if(mServer != null && mServer.getNowPlaying() != null){
-            final Article article = mServer.getNowPlaying();
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
+            final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+
+            if(article.getImgPath() != null && !article.getImgPath().trim().equals("")) {
+                Picasso
+                        .get()
+                        .load(article.getImgPath())
+                        .placeholder(R.drawable.icon_hour_glass)
+                        .transform(new RoundedTransform(10, 0)).into(playing_thumb);
+            }
 
             bottom_title.setText(article.getTitle());
             playing_title.setText(article.getTitle());
@@ -212,8 +226,8 @@ public class MainActivity extends BaseActivity {
             playing_control.setOnCheckedChangeListener(null);
             bottom_toggle.setOnCheckedChangeListener(null);
 
-            playing_control.setChecked(mServer.isPlaying());
-            bottom_toggle.setChecked(mServer.isPlaying());
+            playing_control.setChecked(UISyncManager.getInstance().getService().isPlaying());
+            bottom_toggle.setChecked(UISyncManager.getInstance().getService().isPlaying());
 
             playing_control.setOnCheckedChangeListener(playerControlListener);
             bottom_toggle.setOnCheckedChangeListener(playerControlListener);
@@ -221,7 +235,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void stopMusic(){
-        mServer.stopMedia();
+        UISyncManager.getInstance().getService().stopMedia();
         notifyPlayerInfoChanged();
     }
 
@@ -238,6 +252,7 @@ public class MainActivity extends BaseActivity {
         bottom_title = findViewById(R.id.bottom_title);
         playing_sub = findViewById(R.id.playing_sub);
         playing_control = findViewById(R.id.playing_control);
+        playing_thumb = findViewById(R.id.playing_thumb);
         bottom_toggle = findViewById(R.id.toggle);
 
         titleDisplay = findViewById(R.id.titleDisplay);
@@ -523,27 +538,26 @@ public class MainActivity extends BaseActivity {
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            showToast("disconnected");
             mBounded = false;
-            mServer = null;
+            UISyncManager.getInstance().setService(null);
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            showToast("Connected");
+            notifyPlayerInfoChanged();
             mBounded = true;
             MediaService.LocalBinder mLocalBinder = (MediaService.LocalBinder)service;
-            mServer = mLocalBinder.getServiceInstance();
+            UISyncManager.getInstance().setService(mLocalBinder.getServiceInstance());
         }
     };
 
     @Override
     protected void onStop() {
         super.onStop();
-        if(mBounded) {
-            unbindService(mConnection);
-            mBounded = false;
-        }
+//        if(mBounded) {
+//            unbindService(mConnection);
+//            mBounded = false;
+//        }
     }
 
     @Override

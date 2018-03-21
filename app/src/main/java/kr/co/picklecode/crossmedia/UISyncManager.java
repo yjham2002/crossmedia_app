@@ -10,6 +10,7 @@ import java.util.Random;
 
 import bases.Constants;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
+import kr.co.picklecode.crossmedia.services.MediaService;
 import utils.PreferenceUtil;
 
 /**
@@ -22,12 +23,21 @@ public class UISyncManager {
 
     private ChannelScheme channelScheme;
 
+    private MediaService mServer;
     private Activity context;
     private int currentText;
 
     public static UISyncManager getInstance(){
         if(instance == null) instance = new UISyncManager();
         return instance;
+    }
+
+    public void setService(MediaService mServer){
+        this.mServer = mServer;
+    }
+
+    public MediaService getService(){
+        return mServer;
     }
 
     public void setChannelScheme(ChannelScheme channelScheme) {

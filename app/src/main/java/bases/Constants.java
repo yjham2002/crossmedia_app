@@ -14,6 +14,8 @@ public class Constants {
         String DB_NAME = "kr.co.picklecode.crossmedia.pickleDB";
     }
 
+    public static final String BASE_YOUTUBE_URL = "http://zacchaeus151.cafe24.com/youtube.php?vid=";
+
     public static String getYoutubeSrc(String filtered){
         final String source = "<!DOCTYPE html>\n" +
                 "<html>\n" +
