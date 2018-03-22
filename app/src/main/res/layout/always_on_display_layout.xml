@@ -5,10 +5,10 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
     <FrameLayout
-        android:layout_width="1dp"
-        android:layout_height="1dp">
+        android:layout_width="200dp"
+        android:layout_height="150dp">
         <WebView
-            android:alpha="0"
+
             android:id="@+id/mediaWebView"
             android:layout_width="match_parent"
             android:layout_gravity="bottom"

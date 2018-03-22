@@ -6,8 +6,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -30,8 +32,10 @@ import android.webkit.WebViewClient;
 import android.widget.RemoteViews;
 
 import java.io.IOException;
+import java.util.Date;
 
 import bases.Constants;
+import bases.utils.AlarmBroadcastReceiver;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 import kr.co.picklecode.crossmedia.models.Article;
@@ -52,6 +56,13 @@ public class MediaService extends Service implements View.OnClickListener{
     private WindowManager mManager;
     private IBinder mBinder = new LocalBinder();
 
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
+
     public interface VideoCallBack{
         void onCall();
     }
@@ -66,6 +77,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     @Override
     public IBinder onBind(Intent intent) {
+        registerReceiver(broadcastReceiver, new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
         return mBinder;
     }
 
@@ -81,7 +93,15 @@ public class MediaService extends Service implements View.OnClickListener{
 
     public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
         Log.e("MediaService", "startVideo Invoked.");
-        if(article == null) throw new IllegalArgumentException();
+        if(article == null) {
+            stopMedia();
+            throw new IllegalArgumentException();
+        }
+
+        if(article.getImgPath().indexOf("sayclub") != -1){
+            webView.loadUrl("http://zacchaeus151.cafe24.com/saycast.php?vd_internet_radio_url=http://saycast.sayclub.com/station/home/index/sc101");
+            return;
+        }
 
         this.nowPlaying = article;
         final String url = article.getRepPath();
@@ -94,6 +114,7 @@ public class MediaService extends Service implements View.OnClickListener{
         }catch (Exception e){
             isPlaying = false;
             e.printStackTrace();
+            stopMedia();
             throw new IllegalArgumentException();
         }
 
@@ -292,6 +313,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(broadcastReceiver);
         isPlaying = false;
     }
 

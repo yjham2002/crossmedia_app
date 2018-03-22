@@ -14,6 +14,8 @@ public class Constants {
         String DB_NAME = "kr.co.picklecode.crossmedia.pickleDB";
     }
 
+    public static final String ACTIVITY_INTENT_FILTER = "kr.co.picklecode.crossmedia.intent.activity.common";
+
     public static final String BASE_YOUTUBE_URL = "http://zacchaeus151.cafe24.com/youtube.php?vid=";
 
     public static final String NOTIFICATION_CHANNEL_ID = "kr.co.picklecode.crossmedia.channel01";

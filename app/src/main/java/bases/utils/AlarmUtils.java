@@ -9,9 +9,13 @@ import android.util.Log;
 
 import java.util.Date;
 
+import bases.Constants;
+import utils.PreferenceUtil;
+
 public class AlarmUtils {
 
     private static AlarmUtils instance;
+    private static final int ALARM_UNIQUE_ID = 1029389505;
 
     public static AlarmUtils getInstance() {
         if (instance == null) instance = new AlarmUtils();
@@ -19,8 +23,10 @@ public class AlarmUtils {
     }
 
     public void startAlarm(Context context, int delay) {
+        cancelAll(context);
+
         Intent alarmIntent = new Intent(context, AlarmBroadcastReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_UNIQUE_ID, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -32,6 +38,17 @@ public class AlarmUtils {
         }
 
         Log.e(this.getClass().getSimpleName(), "Alarm Registered at [" + new Date() + "]");
+    }
+
+    public void cancelAll(Context context){
+        Intent alarmIntent = new Intent(context, AlarmBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_UNIQUE_ID, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if(pendingIntent != null){
+            manager.cancel(pendingIntent);
+            pendingIntent.cancel();
+            PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, false);
+        }
     }
 
 }

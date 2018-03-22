@@ -62,20 +62,9 @@ public class TimerActivity extends BaseActivity {
     private AudioManager audioManager;
     private SettingsContentObserver mSettingsContentObserver;
 
-    /**
-     * Broadcast Receiver Test
-     */
-    private BroadcastReceiver mTimeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.e(this.getClass().getSimpleName(), "Alarm Received at [" + new Date() + "]");
-        }
-    };
-
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(mTimeReceiver,new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
         if(UISyncManager.getInstance().isSchemeLoaded()){
             UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
@@ -85,7 +74,6 @@ public class TimerActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mTimeReceiver);
         UISyncManager.getInstance().stopSyncText();
     }
 

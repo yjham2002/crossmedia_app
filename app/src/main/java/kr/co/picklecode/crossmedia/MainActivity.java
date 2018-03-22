@@ -1,9 +1,11 @@
 package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.AudioManager;
@@ -45,6 +47,7 @@ import java.util.Map;
 import bases.BaseActivity;
 
 import bases.BaseApp;
+import bases.Constants;
 import bases.imageTransform.RoundedTransform;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
@@ -57,8 +60,6 @@ import kr.co.picklecode.crossmedia.services.MediaService;
 public class MainActivity extends BaseActivity {
 
     private boolean mBounded;
-
-    private Activity mContext;
 
     private TextView titleDisplay;
 
@@ -84,6 +85,26 @@ public class MainActivity extends BaseActivity {
     private ImageView btn_menu_top; // Menu Buttons
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
+
+    private Activity mContext;
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getExtras().getString("action", "");
+            Log.e("LocalBroadCast", action);
+            switch (action){
+                case "refresh":{
+
+                    UISyncManager.getInstance().syncCurrentText(mContext, R.id.cg_current_id);
+                    UISyncManager.getInstance().syncTimerSet(mContext, R.id.sleepTimer);
+                    UISyncManager.getInstance().syncTimerSet(mContext, R.id.playing_timer);
+
+                    notifyPlayerInfoChanged();
+                    break;
+                }
+            }
+        }
+    };
 
     /**
      * Player Component
@@ -131,6 +152,7 @@ public class MainActivity extends BaseActivity {
         setTitle("");
 
         init();
+
     }
 
     private void initControls() {
@@ -438,8 +460,11 @@ public class MainActivity extends BaseActivity {
                         article.setImgPath(object.getString("vd_thum_url"));
                         article.setTitle(object.getString("vd_title"));
                         article.setContent(object.getString("vd_name"));
+
                         mAdapter.mListData.add(article);
                     }
+
+//                    Log.e("result", json_arr.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
@@ -489,6 +514,7 @@ public class MainActivity extends BaseActivity {
                         article.setCg_min(object.getInt("cg_min"));
                         article.setCg_range(object.getInt("cg_range"));
                         article.setCg_cur(object.getInt("cg_current"));
+
                         mAdapterMenu.mListData.add(article);
                         if(i == 0){
                             loadList(article, 1);
@@ -602,10 +628,15 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume(){
         super.onResume();
+
+        registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
+
         mDrawerToggle.syncState();
         if(UISyncManager.getInstance().isSchemeLoaded()){
             UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
+
+        notifyPlayerInfoChanged();
 
         UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
@@ -615,6 +646,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
+        unregisterReceiver(broadcastReceiver);
         UISyncManager.getInstance().stopSyncText();
     }
 
