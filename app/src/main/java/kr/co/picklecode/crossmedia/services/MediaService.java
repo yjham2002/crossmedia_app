@@ -19,6 +19,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +37,7 @@ import java.util.Date;
 
 import bases.Constants;
 import bases.utils.AlarmBroadcastReceiver;
+import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 import kr.co.picklecode.crossmedia.models.Article;
@@ -93,50 +95,73 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
+        stopMedia();
         repeatFlag = false;
         Log.e("MediaService", "startVideo Invoked.");
         if(article == null) {
             stopMedia();
-            throw new IllegalArgumentException();
-        }
-
-        if(article.getImgPath().indexOf("sayclub") != -1){
-            mediaPlayer.start();
-            webView.loadUrl("http://zacchaeus151.cafe24.com/saycast.php?vd_internet_radio_url=http://saycast.sayclub.com/station/home/index/sc101");
-            return;
+            throw new IllegalArgumentException("The channel was null.");
         }
 
         this.nowPlaying = article;
         final String url = article.getRepPath();
-        String filtered = null;
-        try {
-            final int paramPos = url.indexOf("?v=") + 3;
-            int longParamRevPos = url.indexOf("&", paramPos);
-            if(longParamRevPos == -1) longParamRevPos = url.length();
-            filtered = url.substring(paramPos, longParamRevPos);
-        }catch (Exception e){
-            isPlaying = false;
-            e.printStackTrace();
-            stopMedia();
-            throw new IllegalArgumentException();
+
+        if(article.getType() == 0){ // YouTube
+            String filtered = null;
+            try {
+                final int paramPos = url.indexOf("?v=") + 3;
+                int longParamRevPos = url.indexOf("&", paramPos);
+                if(longParamRevPos == -1) longParamRevPos = url.length();
+                filtered = url.substring(paramPos, longParamRevPos);
+            }catch (Exception e){
+                isPlaying = false;
+                e.printStackTrace();
+                stopMedia();
+                throw new IllegalArgumentException();
+            }
+
+            webView.loadUrl(Constants.BASE_YOUTUBE_URL + filtered);
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isPlaying = true;
+                    repeatFlag = true;
+                    if(videoCallBack != null){
+                        videoCallBack.onCall();
+                    }
+                }
+            }, 1200);
+
+            checkState();
+        }else if(article.getType() == 2){ // Saycast
+            intervalStateCheckHandler.removeCallbacks(stateCheck); // cancel state check
+
+            SimpleCall.getHttp("http://zacchaeus151.cafe24.com/saycast.php?vd_internet_radio_url=" + url, new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    try {
+                        Log.e("saycast", msg.getData().toString());
+                        mediaPlayer.setDataSource(msg.getData().getString("jsonString"));
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                        isPlaying = true;
+
+                        if(videoCallBack != null){
+                            videoCallBack.onCall();
+                        }
+
+                    }catch (IOException e){
+                        e.printStackTrace();
+                        stopMedia();
+                        throw new IllegalArgumentException("Cannot get server address of saycast");
+                    }
+                }
+            });
+        }else{ // else
+            throw new IllegalArgumentException("Unexpected Type number.");
         }
 
-        webView.loadUrl(Constants.BASE_YOUTUBE_URL + filtered);
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                isPlaying = true;
-                repeatFlag = true;
-                if(videoCallBack != null){
-                    videoCallBack.onCall();
-                }
-            }
-        }, 1200);
-
-        checkState();
-//        webView.loadData(Constants.getYoutubeSrc(filtered), "text/html", "UTF-8");
-//
     }
 
     public void setRepeatFlag(boolean repeatFlag) {
@@ -169,13 +194,7 @@ public class MediaService extends Service implements View.OnClickListener{
             versionDependedType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         }
 
-        try {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource("http://sc17.saycast.com:8198");
-            mediaPlayer.prepare();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
+        mediaPlayer = new MediaPlayer();
 
         WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -326,7 +345,7 @@ public class MediaService extends Service implements View.OnClickListener{
     public void stopMedia(){
         webView.loadUrl("javascript:player.pauseVideo();");
         Log.e("MediaService", "stopMedia Invoked.");
-        mediaPlayer.stop();
+        mediaPlayer.reset();
         isPlaying = false;
         sendRefreshingBroadcast();
     }

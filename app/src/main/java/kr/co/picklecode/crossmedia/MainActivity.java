@@ -471,6 +471,7 @@ public class MainActivity extends BaseActivity {
                         JSONObject object = json_arr.getJSONObject(i);
                         final Article article = new Article();
                         article.setId(object.getInt("vd_id"));
+                        article.setType(object.getInt("vd_internet_use"));
                         article.setRepPath(object.getString("vd_url"));
                         article.setImgPath(object.getString("vd_thum_url"));
                         article.setTitle(object.getString("vd_title"));
