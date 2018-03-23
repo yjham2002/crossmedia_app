@@ -91,6 +91,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
+            final int state = intent.getExtras().getInt("state", -1);
             Log.e("LocalBroadCast", action);
             switch (action){
                 case "refresh":{
@@ -100,6 +101,18 @@ public class MainActivity extends BaseActivity {
                     UISyncManager.getInstance().syncTimerSet(mContext, R.id.playing_timer);
 
                     notifyPlayerInfoChanged();
+                    break;
+                }
+                case "state":{
+                    if(state == 0){
+                        UISyncManager.getInstance().getService().setRepeatFlag(false);
+                        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
+                        if(nextIdx == -1){
+                            startMusic(UISyncManager.getInstance().getService().getNowPlaying(), false);
+                        }else {
+                            startMusic(UISyncManager.getInstance().getSongList().get(nextIdx), false);
+                        }
+                    }
                     break;
                 }
             }
@@ -254,6 +267,8 @@ public class MainActivity extends BaseActivity {
 
             playing_control.setOnCheckedChangeListener(playerControlListener);
             bottom_toggle.setOnCheckedChangeListener(playerControlListener);
+
+            mAdapter.notifyDataSetChanged();
         }
     }
 
@@ -436,7 +451,7 @@ public class MainActivity extends BaseActivity {
         isLoading = true;
         progress.setVisibility(View.VISIBLE);
         progressMain.setVisibility(View.VISIBLE);
-        if(init) mAdapter.mListData.clear();
+        if(init) UISyncManager.getInstance().getSongList().clear();
 
         Map<String, Object> params = new HashMap<>();
         params.put("ap_id", 374);
@@ -461,21 +476,21 @@ public class MainActivity extends BaseActivity {
                         article.setTitle(object.getString("vd_title"));
                         article.setContent(object.getString("vd_name"));
 
-                        mAdapter.mListData.add(article);
+                        UISyncManager.getInstance().getSongList().add(article);
                     }
 
 //                    Log.e("result", json_arr.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
-                    if(mAdapter.mListData.size() > 0) {
+                    if(UISyncManager.getInstance().getSongList().size() > 0) {
                         /**
                          * Must have to be located above the notifyDataSetChanged().
                          * cause, the marking process need to be ran after the service-now-playing setting process.
                          */
                         if(UISyncManager.getInstance().getService().isInitialRunning()) {
                             mAdapter.setClickedPos(0);
-                            startMusic(mAdapter.mListData.get(0), false);
+                            startMusic(UISyncManager.getInstance().getSongList().get(0), false);
                             UISyncManager.getInstance().getService().setInitialRunning(false);
                         }
                     }

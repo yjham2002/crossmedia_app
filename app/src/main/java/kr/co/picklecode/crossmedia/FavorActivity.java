@@ -188,14 +188,14 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void loadList(){
-        mAdapter.mListData.clear();
+        UISyncManager.getInstance().getSongList().clear();
 
         List<Article> articles = FavorSQLManager.getInstance(this).getResultOrderBy(null);
 
         for(int e = 0; e < articles.size(); e++){
             final Article article = articles.get(e);
 
-            mAdapter.mListData.add(article);
+            UISyncManager.getInstance().getSongList().add(article);
         }
 
         mAdapter.dataChange();

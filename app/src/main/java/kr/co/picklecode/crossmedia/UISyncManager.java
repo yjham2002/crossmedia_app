@@ -6,9 +6,12 @@ import android.os.Handler;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import bases.Constants;
+import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
 import kr.co.picklecode.crossmedia.services.MediaService;
 import utils.PreferenceUtil;
@@ -18,6 +21,39 @@ import utils.PreferenceUtil;
  */
 
 public class UISyncManager {
+
+    private List<Article> songList = new ArrayList<>();
+
+    public int getNextSongIndex(){
+        if(songList.size() == 0){
+            return -1;
+        }
+
+        int current = -1;
+        for(int e = 0; e < songList.size(); e++){
+            if(getService().getNowPlaying().getId() == songList.get(e).getId()){
+                current = e;
+                break;
+            }
+        }
+        if(current + 1 >= songList.size()){
+            return 0;
+        }else {
+            if(current == -1){
+                return 0;
+            }else {
+                return current + 1;
+            }
+        }
+    }
+
+    public List<Article> getSongList() {
+        return songList;
+    }
+
+    public void setSongList(List<Article> songList) {
+        this.songList = songList;
+    }
 
     private static UISyncManager instance;
 

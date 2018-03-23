@@ -29,7 +29,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public static final int HEADER = 3, DEFAULT = 0;
 
     public Context mContext = null;
-    public List<Article> mListData = new ArrayList<>();
     public int item_layout;
     public int addition = 0;
 
@@ -78,7 +77,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
 
-        final Article mData = mListData.get(position);
+        final Article mData = UISyncManager.getInstance().getSongList().get(position);
         switch (mData.getType()){
             default: {
 //                holder._favicon.setImageDrawable(mContext.getResources().getDrawable(R.drawable.div_01));
@@ -142,14 +141,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     public void deleteItem(int pos){
-        mListData.remove(pos);
+        UISyncManager.getInstance().getSongList().remove(pos);
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos, getItemCount() - pos);
     }
 
     @Override
     public int getItemCount() {
-        return mListData.size();
+        return UISyncManager.getInstance().getSongList().size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -175,7 +174,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     public void addItem(Article addInfo){
-        mListData.add(addInfo);
+        UISyncManager.getInstance().getSongList().add(addInfo);
     }
 
     public void dataChange(){

@@ -92,6 +92,7 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
+        repeatFlag = false;
         Log.e("MediaService", "startVideo Invoked.");
         if(article == null) {
             stopMedia();
@@ -124,14 +125,34 @@ public class MediaService extends Service implements View.OnClickListener{
             @Override
             public void run() {
                 isPlaying = true;
+                repeatFlag = true;
                 if(videoCallBack != null){
                     videoCallBack.onCall();
                 }
             }
         }, 1200);
 
+        checkState();
 //        webView.loadData(Constants.getYoutubeSrc(filtered), "text/html", "UTF-8");
 //
+    }
+
+    public void setRepeatFlag(boolean repeatFlag) {
+        this.repeatFlag = repeatFlag;
+    }
+
+    private boolean repeatFlag = false;
+    private Handler intervalStateCheckHandler = new Handler();
+    private Runnable stateCheck = new Runnable() {
+        @Override
+        public void run() {
+            checkState();
+        }
+    };
+
+    private void checkState(){
+        if(repeatFlag) webView.loadUrl("javascript:currentStatus();");
+        intervalStateCheckHandler.postDelayed(stateCheck, 1000);
     }
 
     @Override
@@ -165,6 +186,15 @@ public class MediaService extends Service implements View.OnClickListener{
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (url.startsWith("pickle://")) {
                     Log.e("webView", url);
+                    if(url.startsWith("pickle://currentStatus?state=")){
+                        final int parsedState = Integer.parseInt(url.replaceAll("pickle://currentStatus\\?state=", ""));
+                        final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+                        if(repeatFlag){
+                            activityIntent1.putExtra("action", "state");
+                            activityIntent1.putExtra("state", parsedState);
+                            MediaService.this.sendBroadcast(activityIntent1);
+                        }
+                    }
                     return true;
                 }else {
                     if(url.startsWith("javascript")){
@@ -287,6 +317,13 @@ public class MediaService extends Service implements View.OnClickListener{
         webView.loadUrl("javascript:player.pauseVideo();");
         Log.e("MediaService", "stopMedia Invoked.");
         isPlaying = false;
+        sendRefreshingBroadcast();
+    }
+
+    public void sendRefreshingBroadcast(){
+        final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+        activityIntent1.putExtra("action", "refresh");
+        this.sendBroadcast(activityIntent1);
     }
 
     public void stopAll(){
