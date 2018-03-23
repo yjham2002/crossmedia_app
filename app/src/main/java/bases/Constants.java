@@ -8,6 +8,7 @@ public class Constants {
 
     public interface PREFERENCE{
         String IS_ALARM_SET = "kr.co.picklecode.crossmedia.isAlarmSet";
+        String ALARM_TIME = "kr.co.picklecode.crossmedia.alarmTime";
     }
 
     public interface DATABASE{

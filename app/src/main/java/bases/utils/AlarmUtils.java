@@ -28,16 +28,28 @@ public class AlarmUtils {
         Intent alarmIntent = new Intent(context, AlarmBroadcastReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_UNIQUE_ID, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        final long setTime = System.currentTimeMillis() + delay;
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
+            manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, setTime, pendingIntent);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            manager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
+            manager.setExact(AlarmManager.RTC_WAKEUP, setTime, pendingIntent);
         } else {
-            manager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
+            manager.set(AlarmManager.RTC_WAKEUP, setTime, pendingIntent);
         }
 
         Log.e(this.getClass().getSimpleName(), "Alarm Registered at [" + new Date() + "]");
+        PreferenceUtil.setLong(Constants.PREFERENCE.ALARM_TIME, setTime);
+    }
+
+    public PendingIntent getCurrentSetAlarm(Context context){
+        Intent alarmIntent = new Intent(context, AlarmBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_UNIQUE_ID, alarmIntent, PendingIntent.FLAG_NO_CREATE);
+        if(pendingIntent == null){
+            return null;
+        }else{
+            return pendingIntent;
+        }
     }
 
     public void cancelAll(Context context){

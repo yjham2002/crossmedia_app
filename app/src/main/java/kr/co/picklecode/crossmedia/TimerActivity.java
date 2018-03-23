@@ -1,6 +1,7 @@
 package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,18 +24,18 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import java.util.Date;
-
 import bases.BaseActivity;
-import bases.utils.AlarmBroadcastReceiver;
+import bases.Constants;
+import bases.utils.AlarmUtils;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.TimerItem;
 import kr.co.picklecode.crossmedia.observers.ObserverCallback;
 import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
+import utils.PreferenceUtil;
 
 public class TimerActivity extends BaseActivity {
 
-    private Activity mActivity;
+    private Activity mContext;
 
     private ImageView btn_back;
 
@@ -47,6 +48,25 @@ public class TimerActivity extends BaseActivity {
     private AdView mAdView;
 
     private ToggleButton playingTimer;
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getExtras().getString("action", "");
+            Log.e("LocalBroadCast", action);
+            switch (action){
+                case "refresh":{
+                    UISyncManager.getInstance().syncCurrentText(mContext, R.id.cg_current_id);
+                    UISyncManager.getInstance().syncTimerSet(mContext, R.id.playing_timer);
+                    loadList();
+                    timeIndHandler.post(timeIndicator);
+                    refreshTimerText();
+//                    notifyPlayerInfoChanged();
+                    break;
+                }
+            }
+        }
+    };
 
     /**
      * Slider
@@ -68,6 +88,7 @@ public class TimerActivity extends BaseActivity {
         if(UISyncManager.getInstance().isSchemeLoaded()){
             UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
         }
+        registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
     }
 
@@ -75,6 +96,7 @@ public class TimerActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         UISyncManager.getInstance().stopSyncText();
+        unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -129,8 +151,35 @@ public class TimerActivity extends BaseActivity {
         getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
     }
 
+    private Runnable timeIndicator = new Runnable() {
+        @Override
+        public void run() {
+            final long remainings = (PreferenceUtil.getLong(Constants.PREFERENCE.ALARM_TIME, 0) - System.currentTimeMillis()) / 1000;
+            final long hour = remainings / 60 / 60;
+            final long min = (remainings - (hour * 60 * 60)) / 60;
+            final long sec = (remainings - (hour * 60 * 60)) - (min * 60);
+            if(remainings <= 0){
+                caption.setText("Sleep Timer");
+            }else{
+                caption.setText(String.format("%02d:%02d:%02d", hour, min, sec));
+                refreshTimerText();
+            }
+        }
+    };
+
+    private Handler timeIndHandler = new Handler();
+
+    private void refreshTimerText(){
+        if(AlarmUtils.getInstance().getCurrentSetAlarm(mContext) == null){
+            timeIndHandler.removeCallbacks(timeIndicator);
+            caption.setText("Sleep Timer");
+        }else{
+            timeIndHandler.postDelayed(timeIndicator, 1000);
+        }
+    }
+
     private void initView(){
-        this.mActivity = this;
+        this.mContext = this;
 
         initControls();
 
@@ -152,7 +201,7 @@ public class TimerActivity extends BaseActivity {
         mAdapter = new TimerAdapter(this, R.layout.layout_timer, new AdapterCall<TimerItem>() {
             @Override
             public void onCall(TimerItem article) {
-                UISyncManager.getInstance().syncTimerSet(mActivity, R.id.playing_timer);
+                UISyncManager.getInstance().syncTimerSet(mContext, R.id.playing_timer);
                 if(!article.isCancel()) {
                     final int inHour = article.getTimeInMins() / 60;
                     final int leftMin = article.getTimeInMins() - (inHour * 60);
@@ -196,6 +245,9 @@ public class TimerActivity extends BaseActivity {
         setClick(btn_back, arrowDown, playingTimer);
 
         loadList();
+
+        timeIndHandler.post(timeIndicator);
+        refreshTimerText();
     }
 
     private void loadList(){
@@ -209,7 +261,9 @@ public class TimerActivity extends BaseActivity {
         mAdapter.mListData.add(new TimerItem(60 * 3, "3 Hours", false));
         mAdapter.mListData.add(new TimerItem(60 * 4, "4 Hours", false));
         mAdapter.mListData.add(new TimerItem(60 * 5, "5 Hours", false));
-        mAdapter.mListData.add(new TimerItem(0, "Cancel", true));
+        if(PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false)) {
+            mAdapter.mListData.add(new TimerItem(0, "Cancel", true));
+        }
 
         mAdapter.notifyDataSetChanged();
     }

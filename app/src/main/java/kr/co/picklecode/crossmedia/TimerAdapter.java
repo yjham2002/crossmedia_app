@@ -2,6 +2,7 @@ package kr.co.picklecode.crossmedia;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -83,9 +84,14 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
                     PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, false);
                     AlarmUtils.getInstance().cancelAll(mContext);
                 }else{
-                    AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000);
+                    AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60);
                     PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, true);
                 }
+
+                final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+                activityIntent1.putExtra("action", "refresh");
+                mContext.sendBroadcast(activityIntent1);
+
                 if(adapterCall != null){
                     adapterCall.onCall(mData);
                 }
