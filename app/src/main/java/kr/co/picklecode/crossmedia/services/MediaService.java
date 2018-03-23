@@ -47,6 +47,7 @@ import static android.app.NotificationManager.IMPORTANCE_HIGH;
  */
 public class MediaService extends Service implements View.OnClickListener{
 
+    private MediaPlayer mediaPlayer;
     private boolean isPlaying = false;
 
     private boolean isInitialRunning = true;
@@ -100,6 +101,7 @@ public class MediaService extends Service implements View.OnClickListener{
         }
 
         if(article.getImgPath().indexOf("sayclub") != -1){
+            mediaPlayer.start();
             webView.loadUrl("http://zacchaeus151.cafe24.com/saycast.php?vd_internet_radio_url=http://saycast.sayclub.com/station/home/index/sc101");
             return;
         }
@@ -165,6 +167,14 @@ public class MediaService extends Service implements View.OnClickListener{
         int versionDependedType = WindowManager.LayoutParams.TYPE_PHONE;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             versionDependedType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        }
+
+        try {
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setDataSource("http://sc17.saycast.com:8198");
+            mediaPlayer.prepare();
+        }catch (IOException e){
+            e.printStackTrace();
         }
 
         WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
@@ -316,6 +326,7 @@ public class MediaService extends Service implements View.OnClickListener{
     public void stopMedia(){
         webView.loadUrl("javascript:player.pauseVideo();");
         Log.e("MediaService", "stopMedia Invoked.");
+        mediaPlayer.stop();
         isPlaying = false;
         sendRefreshingBroadcast();
     }
@@ -351,6 +362,7 @@ public class MediaService extends Service implements View.OnClickListener{
     @Override
     public void onDestroy() {
         unregisterReceiver(broadcastReceiver);
+        mediaPlayer.stop();
         isPlaying = false;
     }
 
