@@ -7,6 +7,7 @@
     <color name="colorPrimaryDarkPlayer">#0EAD94</color>
     <color name="colorAccent">#000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="introPink">#E34F64</color>
     <color name="themeColor">#F0594A</color>
     <color name="themeColorAccent">#F0594A</color>
     <color name="orange_exit">#F16B5E</color>
