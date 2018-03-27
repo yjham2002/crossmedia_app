@@ -40,6 +40,7 @@ import bases.utils.AlarmBroadcastReceiver;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
+import kr.co.picklecode.crossmedia.UISyncManager;
 import kr.co.picklecode.crossmedia.models.Article;
 
 import static android.app.NotificationManager.IMPORTANCE_HIGH;
@@ -52,7 +53,7 @@ public class MediaService extends Service implements View.OnClickListener{
     private MediaPlayer mediaPlayer;
     private boolean isPlaying = false;
 
-    private boolean isInitialRunning = true;
+    private static boolean isInitialRunning = true;
     private Article nowPlaying;
     private View mView;
     private WebView webView;
@@ -62,7 +63,35 @@ public class MediaService extends Service implements View.OnClickListener{
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            final String action = intent.getExtras().getString("action", "");
+            final int state = intent.getExtras().getInt("state", -1);
+            Log.e("MediaReceiver", action);
+            switch (action){
+                case "refresh":{
+                }
+                case "state":{
+                    if(state == 0){
+                        UISyncManager.getInstance().getService().setRepeatFlag(false);
+                        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
+                        if(nextIdx == -1){
+                            startVideo(UISyncManager.getInstance().getService().getNowPlaying(), new VideoCallBack() {
+                                @Override
+                                public void onCall() {
+                                    sendRefreshingBroadcast();
+                                }
+                            });
+                        }else {
+                            startVideo(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
+                                @Override
+                                public void onCall() {
+                                    sendRefreshingBroadcast();
+                                }
+                            });
+                        }
+                    }
+                    break;
+                }
+            }
         }
     };
 
@@ -71,6 +100,7 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public boolean isInitialRunning() {
+        if(nowPlaying != null) isInitialRunning = false;
         return isInitialRunning;
     }
 
@@ -80,7 +110,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     @Override
     public IBinder onBind(Intent intent) {
-        registerReceiver(broadcastReceiver, new IntentFilter(AlarmBroadcastReceiver.IntentConstants.INTENT_FILTER));
+        registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
         return mBinder;
     }
 
@@ -143,8 +173,18 @@ public class MediaService extends Service implements View.OnClickListener{
                     try {
                         Log.e("saycast", msg.getData().toString());
                         mediaPlayer.setDataSource(msg.getData().getString("jsonString"));
-                        mediaPlayer.prepare();
-                        mediaPlayer.start();
+                        mediaPlayer.prepareAsync();
+                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mediaPlayer) {
+                                mediaPlayer.start();
+                            }
+                        });
+
+                        /**
+                         * Preparing Process has been changed to asynchronous mode at Mar, 24th, 2018 14:03
+                         */
+
                         isPlaying = true;
 
                         if(videoCallBack != null){

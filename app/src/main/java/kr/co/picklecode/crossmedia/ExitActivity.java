@@ -2,6 +2,7 @@ package kr.co.picklecode.crossmedia;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -31,6 +32,7 @@ import java.util.Locale;
 
 import bases.BaseActivity;
 import bases.BaseApp;
+import bases.Constants;
 
 public class ExitActivity extends BaseActivity {
 
@@ -58,7 +60,15 @@ public class ExitActivity extends BaseActivity {
     public void onClick(View v){
         switch (v.getId()){
             case R.id.exit_action:{
-                System.exit(0);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Intent i = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+                        i.putExtra("action", "finish");
+                        sendBroadcast(i);
+                    }
+                }, 1000);
+                finish();
             }
                 break;
             case R.id.btn_cancel:{

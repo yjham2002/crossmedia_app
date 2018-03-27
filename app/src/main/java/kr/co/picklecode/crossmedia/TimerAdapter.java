@@ -76,6 +76,15 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
 
         holder._title.setText(mData.getDisplayName());
         holder._title.setSelected(true);
+        if(mData.isCancel() ||
+                (mData.getTimeInMins() == PreferenceUtil.getInt(Constants.PREFERENCE.ALARM_TIME_FOR_ADAPTER, 0)
+                        && AlarmUtils.getInstance().getCurrentSetAlarm(mContext) != null
+                        && PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false)
+                )){
+            holder._title.setTextColor(mContext.getResources().getColor(R.color.red));
+        }else {
+            holder._title.setTextColor(mContext.getResources().getColor(R.color.black));
+        }
 
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
@@ -86,6 +95,7 @@ public class TimerAdapter extends RecyclerView.Adapter<TimerAdapter.ViewHolder> 
                 }else{
                     AlarmUtils.getInstance().startAlarm(mContext, mData.getTimeInMins() * 1000 * 60);
                     PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, true);
+                    PreferenceUtil.setInt(Constants.PREFERENCE.ALARM_TIME_FOR_ADAPTER, mData.getTimeInMins());
                 }
 
                 final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);

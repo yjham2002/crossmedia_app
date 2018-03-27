@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -24,6 +25,8 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -59,8 +62,6 @@ import kr.co.picklecode.crossmedia.services.MediaService;
 
 public class MainActivity extends BaseActivity {
 
-    private boolean mBounded;
-
     private TextView titleDisplay;
 
     private ImageView _topBtn;
@@ -92,8 +93,13 @@ public class MainActivity extends BaseActivity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
             final int state = intent.getExtras().getInt("state", -1);
-            Log.e("LocalBroadCast", action);
+            Log.e("MainReceiver", action);
             switch (action){
+                case "finish":{
+                    Log.e("finishState", "invoked");
+                    MainActivity.this.finish();
+                    break;
+                }
                 case "refresh":{
 
                     UISyncManager.getInstance().syncCurrentText(mContext, R.id.cg_current_id);
@@ -104,15 +110,7 @@ public class MainActivity extends BaseActivity {
                     break;
                 }
                 case "state":{
-                    if(state == 0){
-                        UISyncManager.getInstance().getService().setRepeatFlag(false);
-                        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
-                        if(nextIdx == -1){
-                            startMusic(UISyncManager.getInstance().getService().getNowPlaying(), false);
-                        }else {
-                            startMusic(UISyncManager.getInstance().getSongList().get(nextIdx), false);
-                        }
-                    }
+
                     break;
                 }
             }
@@ -128,6 +126,20 @@ public class MainActivity extends BaseActivity {
     private TextView bottom_title;
     private ToggleButton playing_control;
     private ToggleButton bottom_toggle;
+    private ToggleButton playing_favor;
+    private ToggleButton.OnCheckedChangeListener playerFavorListener = new ToggleButton.OnCheckedChangeListener(){
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if(b){
+                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlaying());
+            }else {
+                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlaying().getId());
+            }
+            final Intent intent = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+            intent.putExtra("action", "favorRefresh");
+            sendBroadcast(intent);
+        }
+    };
     private ToggleButton.OnCheckedChangeListener playerControlListener = new ToggleButton.OnCheckedChangeListener(){
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -247,6 +259,16 @@ public class MainActivity extends BaseActivity {
         if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
             final Article article = UISyncManager.getInstance().getService().getNowPlaying();
 
+            if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(article.getId())){
+                playing_favor.setOnCheckedChangeListener(null);
+                playing_favor.setChecked(true);
+            }else{
+                playing_favor.setOnCheckedChangeListener(null);
+                playing_favor.setChecked(false);
+            }
+
+            playing_favor.setOnCheckedChangeListener(playerFavorListener);
+
             if(article.getImgPath() != null && !article.getImgPath().trim().equals("")) {
                 Picasso
                         .get()
@@ -292,6 +314,7 @@ public class MainActivity extends BaseActivity {
         playing_control = findViewById(R.id.playing_control);
         playing_thumb = findViewById(R.id.playing_thumb);
         bottom_toggle = findViewById(R.id.toggle);
+        playing_favor = findViewById(R.id.playing_favor);
 
         titleDisplay = findViewById(R.id.titleDisplay);
 
@@ -334,6 +357,20 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 Log.d("Slider", "previousState:"+previousState +"\nnewState:"+newState);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if(newState == SlidingUpPanelLayout.PanelState.EXPANDED){
+                        Window window = getWindow();
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                        window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryPlayer));
+                    }else {
+                        Window window = getWindow();
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                        window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+                    }
+                }
+
             }
         });
 
@@ -416,8 +453,6 @@ public class MainActivity extends BaseActivity {
             }, 4000);
         }
 
-        loadMenuList();
-
         notifyPlayerInfoChanged();
     }
 
@@ -490,6 +525,7 @@ public class MainActivity extends BaseActivity {
                          * cause, the marking process need to be ran after the service-now-playing setting process.
                          */
                         if(UISyncManager.getInstance().getService().isInitialRunning()) {
+                            Log.e("initialF", "play");
                             mAdapter.setClickedPos(0);
                             startMusic(UISyncManager.getInstance().getSongList().get(0), false);
                             UISyncManager.getInstance().getService().setInitialRunning(false);
@@ -560,8 +596,10 @@ public class MainActivity extends BaseActivity {
                 break;
             }
             case R.id.playing_timer: {
+                final Intent intent = new Intent(MainActivity.this, TimerActivity.class);
                 UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
                 UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+                startActivity(intent);
                 break;
             }
             case R.id.top_fav: {
@@ -586,22 +624,6 @@ public class MainActivity extends BaseActivity {
                 break;
         }
     }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBounded = false;
-            UISyncManager.getInstance().setService(null);
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            notifyPlayerInfoChanged();
-            mBounded = true;
-            MediaService.LocalBinder mLocalBinder = (MediaService.LocalBinder)service;
-            UISyncManager.getInstance().setService(mLocalBinder.getServiceInstance());
-        }
-    };
 
     @Override
     protected void onStop() {
@@ -630,8 +652,6 @@ public class MainActivity extends BaseActivity {
             actionBar.setHomeButtonEnabled(true);
         }
 
-        final Intent backgroundIntentCall = new Intent(getBaseContext(), MediaService.class);
-        bindService(backgroundIntentCall, mConnection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -644,6 +664,8 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume(){
         super.onResume();
+
+        loadMenuList();
 
         registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
 

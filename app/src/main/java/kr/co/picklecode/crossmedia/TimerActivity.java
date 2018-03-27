@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -15,6 +16,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -23,14 +27,18 @@ import android.widget.ToggleButton;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.squareup.picasso.Picasso;
 
 import bases.BaseActivity;
 import bases.Constants;
+import bases.imageTransform.RoundedTransform;
 import bases.utils.AlarmUtils;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
+import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.TimerItem;
 import kr.co.picklecode.crossmedia.observers.ObserverCallback;
 import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
+import kr.co.picklecode.crossmedia.services.MediaService;
 import utils.PreferenceUtil;
 
 public class TimerActivity extends BaseActivity {
@@ -49,24 +57,149 @@ public class TimerActivity extends BaseActivity {
 
     private ToggleButton playingTimer;
 
+    /**
+     * Player Component
+     */
+    private ImageView playing_thumb;
+    private TextView playing_title;
+    private TextView playing_sub;
+    private TextView bottom_title;
+    private ToggleButton playing_control;
+    private ToggleButton bottom_toggle;
+    private ToggleButton playing_favor;
+    private ToggleButton.OnCheckedChangeListener playerFavorListener = new ToggleButton.OnCheckedChangeListener(){
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if(b){
+                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlaying());
+            }else {
+                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlaying().getId());
+            }
+            final Intent intent = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+            intent.putExtra("action", "favorRefresh");
+            sendBroadcast(intent);
+        }
+    };
+    private ToggleButton.OnCheckedChangeListener playerControlListener = new ToggleButton.OnCheckedChangeListener(){
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if(b){
+                try {
+                    resumeMusic();
+                }catch (IllegalStateException e){
+                    notifyPlayerInfoChanged();
+                }
+            }else {
+                stopMusic();
+            }
+        }
+    };
+
+    private void stopMusic(){
+        UISyncManager.getInstance().getService().stopMedia();
+        notifyPlayerInfoChanged();
+    }
+
+    private void startMusic(Article article, final boolean openSider){
+        if(isNetworkEnable()) {
+            try {
+                UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
+                    @Override
+                    public void onCall() {
+                        if(!isNetworkEnable()){
+                            UISyncManager.getInstance().getService().stopMedia();
+                            showToast("네트워크에 연결할 수 없습니다.");
+                        }
+                        notifyPlayerInfoChanged();
+                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                    }
+                });
+
+            } catch (IllegalArgumentException e) {
+                showToast("로드할 수 없습니다.");
+            }
+            notifyPlayerInfoChanged();
+        }else {
+            showToast("네트워크에 연결할 수 없습니다.");
+        }
+    }
+
+    private void resumeMusic() throws IllegalStateException{
+        final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        startMusic(article, true);
+        if(article == null) throw new IllegalStateException();
+
+        notifyPlayerInfoChanged();
+    }
+
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
-            Log.e("LocalBroadCast", action);
+            final int state = intent.getExtras().getInt("state", -1);
+            Log.e("TimerRecv", action);
             switch (action){
+                case "finish":{
+                    Log.e("finishState", "invoked");
+                    TimerActivity.this.finish();
+                    break;
+                }
                 case "refresh":{
                     UISyncManager.getInstance().syncCurrentText(mContext, R.id.cg_current_id);
+                    UISyncManager.getInstance().syncTimerSet(mContext, R.id.sleepTimer);
                     UISyncManager.getInstance().syncTimerSet(mContext, R.id.playing_timer);
+                    notifyPlayerInfoChanged();
                     loadList();
                     timeIndHandler.post(timeIndicator);
                     refreshTimerText();
-//                    notifyPlayerInfoChanged();
+                    break;
+                }
+                case "state":{
+
                     break;
                 }
             }
         }
     };
+
+    private void notifyPlayerInfoChanged(){
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
+            final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+
+            if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(article.getId())){
+                playing_favor.setOnCheckedChangeListener(null);
+                playing_favor.setChecked(true);
+            }else{
+                playing_favor.setOnCheckedChangeListener(null);
+                playing_favor.setChecked(false);
+            }
+
+            playing_favor.setOnCheckedChangeListener(playerFavorListener);
+
+            if(article.getImgPath() != null && !article.getImgPath().trim().equals("")) {
+                Picasso
+                        .get()
+                        .load(article.getImgPath())
+                        .placeholder(R.drawable.icon_hour_glass)
+                        .transform(new RoundedTransform(10, 0)).into(playing_thumb);
+            }
+
+            bottom_title.setText(article.getTitle());
+            playing_title.setText(article.getTitle());
+            playing_sub.setText(article.getContent());
+
+            playing_control.setOnCheckedChangeListener(null);
+            bottom_toggle.setOnCheckedChangeListener(null);
+
+            playing_control.setChecked(UISyncManager.getInstance().getService().isPlaying());
+            bottom_toggle.setChecked(UISyncManager.getInstance().getService().isPlaying());
+
+            playing_control.setOnCheckedChangeListener(playerControlListener);
+            bottom_toggle.setOnCheckedChangeListener(playerControlListener);
+
+            mAdapter.notifyDataSetChanged();
+        }
+    }
 
     /**
      * Slider
@@ -90,6 +223,8 @@ public class TimerActivity extends BaseActivity {
         }
         registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+
+        notifyPlayerInfoChanged();
     }
 
     @Override
@@ -185,6 +320,14 @@ public class TimerActivity extends BaseActivity {
 
         playingTimer = findViewById(R.id.playing_timer);
 
+        playing_title = findViewById(R.id.playing_title);
+        bottom_title = findViewById(R.id.bottom_title);
+        playing_sub = findViewById(R.id.playing_sub);
+        playing_control = findViewById(R.id.playing_control);
+        playing_thumb = findViewById(R.id.playing_thumb);
+        playing_favor = findViewById(R.id.playing_favor);
+        bottom_toggle = findViewById(R.id.toggle);
+
         refreshAd(true, false);
 
         mAdView = findViewById(R.id.adView);
@@ -239,6 +382,19 @@ public class TimerActivity extends BaseActivity {
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 Log.d("Slider", "previousState:"+previousState +"\nnewState:"+newState);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if(newState == SlidingUpPanelLayout.PanelState.EXPANDED){
+                        Window window = getWindow();
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                        window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryPlayer));
+                    }else {
+                        Window window = getWindow();
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                        window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+                    }
+                }
             }
         });
 
@@ -274,6 +430,7 @@ public class TimerActivity extends BaseActivity {
             case R.id.playing_timer: {
                 UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
                 UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
+                controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                 break;
             }
             case R.id.btn_back_action: {
