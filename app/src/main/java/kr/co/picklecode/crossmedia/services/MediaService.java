@@ -60,6 +60,26 @@ public class MediaService extends Service implements View.OnClickListener{
     private WindowManager mManager;
     private IBinder mBinder = new LocalBinder();
 
+    private void nextMusic(){
+        UISyncManager.getInstance().getService().setRepeatFlag(false);
+        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
+        if(nextIdx == -1){
+            startVideo(UISyncManager.getInstance().getService().getNowPlaying(), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    sendRefreshingBroadcast();
+                }
+            });
+        }else {
+            startVideo(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    sendRefreshingBroadcast();
+                }
+            });
+        }
+    }
+
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -71,23 +91,7 @@ public class MediaService extends Service implements View.OnClickListener{
                 }
                 case "state":{
                     if(state == 0){
-                        UISyncManager.getInstance().getService().setRepeatFlag(false);
-                        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
-                        if(nextIdx == -1){
-                            startVideo(UISyncManager.getInstance().getService().getNowPlaying(), new VideoCallBack() {
-                                @Override
-                                public void onCall() {
-                                    sendRefreshingBroadcast();
-                                }
-                            });
-                        }else {
-                            startVideo(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
-                                @Override
-                                public void onCall() {
-                                    sendRefreshingBroadcast();
-                                }
-                            });
-                        }
+                        nextMusic();
                     }
                     break;
                 }
@@ -173,6 +177,12 @@ public class MediaService extends Service implements View.OnClickListener{
                     try {
                         Log.e("saycast", msg.getData().toString());
                         mediaPlayer.setDataSource(msg.getData().getString("jsonString"));
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mediaPlayer) {
+                                nextMusic();
+                            }
+                        });
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
