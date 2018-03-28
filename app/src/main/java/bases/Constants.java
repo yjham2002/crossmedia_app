@@ -20,8 +20,8 @@ public class Constants {
 
     public static final String BASE_YOUTUBE_URL = "http://zacchaeus151.cafe24.com/youtube.php?vid=";
 
-    public static final String NOTIFICATION_CHANNEL_ID = "kr.co.picklecode.crossmedia.channel01";
-    public static final String NOTIFICATION_CHANNEL_NAME = "kr.co.picklecode.crossmedia.channel01.name";
+    public static final String NOTIFICATION_CHANNEL_ID = "kr.co.picklecode.crossmedia.channel001";
+    public static final String NOTIFICATION_CHANNEL_NAME = "kr.co.picklecode.crossmedia.channel001.name";
 
     public static String getYoutubeSrc(String filtered){
         final String source = "<!DOCTYPE html>\n" +

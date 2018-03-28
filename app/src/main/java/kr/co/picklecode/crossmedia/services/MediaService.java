@@ -339,13 +339,14 @@ public class MediaService extends Service implements View.OnClickListener{
 //        mNotificationManager.notify(20180312, mBuilder.build());
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID, Constants.NOTIFICATION_CHANNEL_NAME, IMPORTANCE_HIGH);
-            notificationChannel.enableLights(true);
-            notificationChannel.setLightColor(Color.RED);
-            notificationChannel.setShowBadge(true);
-            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID, Constants.NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+//            notificationChannel.enableLights(true);
+//            notificationChannel.setLightColor(Color.RED);
+//            notificationChannel.setShowBadge(true);
+//            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             notificationChannel.setSound(null, null);
             mNotificationManager.createNotificationChannel(notificationChannel);
+            mBuilder.setChannelId(Constants.NOTIFICATION_CHANNEL_ID);
         }
 
         startForeground(20180312, mBuilder.build());
@@ -378,8 +379,8 @@ public class MediaService extends Service implements View.OnClickListener{
                 .setContentTitle("StatusBar Title")
                 .setContentText("StatusBar subTitle")
                 .setAutoCancel(true)
-                .setWhen(System.currentTimeMillis())
-                .setDefaults(Notification.DEFAULT_ALL);
+                .setWhen(System.currentTimeMillis());
+//                .setDefaults(Notification.);
 //        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
 //            builder.setCategory(Notification.CATEGORY_MESSAGE)
 //                    .setPriority(Notification.PRIORITY_HIGH)
