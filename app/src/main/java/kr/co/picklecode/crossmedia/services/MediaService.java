@@ -32,10 +32,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RemoteViews;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.IOException;
 import java.util.Date;
 
 import bases.Constants;
+import bases.imageTransform.RoundedTransform;
 import bases.utils.AlarmBroadcastReceiver;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.MainActivity;
@@ -80,6 +83,32 @@ public class MediaService extends Service implements View.OnClickListener{
         }
     }
 
+    private BroadcastReceiver notificationListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getExtras().getString("action", "");
+            Log.e("notiListener", action);
+            switch (action) {
+                case Constants.INTENT_NOTIFICATION.ACTION_PLAY:{
+                    if(nowPlaying != null) startVideo(nowPlaying, new VideoCallBack() {
+                        @Override
+                        public void onCall() {
+                            sendRefreshingBroadcast();
+                        }});
+                    break;
+                }
+                case Constants.INTENT_NOTIFICATION.ACTION_STOP:{
+                    stopMedia();
+                    break;
+                }
+                case Constants.INTENT_NOTIFICATION.ACTION_CLOSE:{
+                    System.exit(0);
+                    break;
+                }
+            }
+        }
+    };
+
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -88,6 +117,7 @@ public class MediaService extends Service implements View.OnClickListener{
             Log.e("MediaReceiver", action);
             switch (action){
                 case "refresh":{
+                    showPlayerNotification();
                 }
                 case "state":{
                     if(state == 0){
@@ -115,6 +145,7 @@ public class MediaService extends Service implements View.OnClickListener{
     @Override
     public IBinder onBind(Intent intent) {
         registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
+        registerReceiver(notificationListener, new IntentFilter(Constants.INTENT_NOTIFICATION.REP_FILTER));
         return mBinder;
     }
 
@@ -164,6 +195,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     if(videoCallBack != null){
                         videoCallBack.onCall();
                     }
+                    sendRefreshingBroadcast();
                 }
             }, 1200);
 
@@ -200,6 +232,7 @@ public class MediaService extends Service implements View.OnClickListener{
                         if(videoCallBack != null){
                             videoCallBack.onCall();
                         }
+                        sendRefreshingBroadcast();
 
                     }catch (IOException e){
                         e.printStackTrace();
@@ -211,7 +244,6 @@ public class MediaService extends Service implements View.OnClickListener{
         }else{ // else
             throw new IllegalArgumentException("Unexpected Type number.");
         }
-
     }
 
     public void setRepeatFlag(boolean repeatFlag) {
@@ -324,16 +356,8 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     protected void showPlayerNotification(){
+
         Notification.Builder mBuilder = createNotification();
-
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.player_notification_layout);
-        remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
-        remoteViews.setTextViewText(R.id.noti_title, "Title");
-        remoteViews.setTextViewText(R.id.noti_sub, "message");
-
-        mBuilder.setContent(remoteViews);
-        mBuilder.setContentIntent(createPendingIntent());
-        mBuilder.setOngoing(true);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        mNotificationManager.notify(20180312, mBuilder.build());
@@ -349,7 +373,73 @@ public class MediaService extends Service implements View.OnClickListener{
             mBuilder.setChannelId(Constants.NOTIFICATION_CHANNEL_ID);
         }
 
-        startForeground(20180312, mBuilder.build());
+        final RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.player_notification_layout);
+
+        /**
+         * Setting Listeners start
+         */
+        final Intent intent_play = new Intent(Constants.INTENT_NOTIFICATION.REP_FILTER);
+        intent_play.putExtra("action", Constants.INTENT_NOTIFICATION.ACTION_PLAY);
+//        intent_play.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent_play = PendingIntent.getBroadcast(this, Constants.INTENT_NOTIFICATION.REQ_CODE_ACTION_PLAY, intent_play, 0);
+        remoteViews.setOnClickPendingIntent(R.id.noti_play, pendingIntent_play);
+
+        final Intent intent_stop = new Intent(Constants.INTENT_NOTIFICATION.REP_FILTER);
+        intent_stop.putExtra("action", Constants.INTENT_NOTIFICATION.ACTION_STOP);
+//        intent_stop.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent_stop = PendingIntent.getBroadcast(this, Constants.INTENT_NOTIFICATION.REQ_CODE_ACTION_STOP, intent_stop, 0);
+        remoteViews.setOnClickPendingIntent(R.id.noti_pause, pendingIntent_stop);
+
+        final Intent intent_close = new Intent(Constants.INTENT_NOTIFICATION.REP_FILTER);
+        intent_close.putExtra("action", Constants.INTENT_NOTIFICATION.ACTION_CLOSE);
+//        intent_close.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent_close = PendingIntent.getBroadcast(this, Constants.INTENT_NOTIFICATION.REQ_CODE_ACTION_CLOSE, intent_close, 0);
+        remoteViews.setOnClickPendingIntent(R.id.noti_close, pendingIntent_close);
+
+        remoteViews.setOnClickPendingIntent(R.id.mainLayout, createPendingIntent());
+        /**
+         * Setting Listeners end
+         */
+
+        mBuilder.setContent(remoteViews);
+//        mBuilder.setContentIntent(createPendingIntent());
+        mBuilder.setOngoing(true);
+
+        final Notification notification = mBuilder.build();
+        final int notiId = 20180312;
+
+        if(nowPlaying == null) {
+            remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
+            remoteViews.setTextViewText(R.id.noti_title, "재생중인 채널이 없습니다.");
+            remoteViews.setTextViewText(R.id.noti_sub, "");
+        }else{
+            remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
+            if(nowPlaying.getImgPath() != null) {
+                try {
+                    Picasso
+                            .get()
+                            .load(nowPlaying.getImgPath())
+                            .transform(new RoundedTransform(10, 0)).into(remoteViews, R.id.noti_img, notiId, notification);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
+                }
+            }
+            remoteViews.setTextViewText(R.id.noti_title, nowPlaying.getTitle());
+            remoteViews.setTextViewText(R.id.noti_sub, nowPlaying.getContent());
+        }
+        setNotificationPlaying(remoteViews, R.id.noti_play, R.id.noti_pause, isPlaying);
+        startForeground(notiId, notification);
+    }
+
+    private void setNotificationPlaying(RemoteViews remoteViews, int playId, int stopId, boolean isPlaying){
+        if(isPlaying){
+            remoteViews.setViewVisibility(playId, View.INVISIBLE);
+            remoteViews.setViewVisibility(stopId, View.VISIBLE);
+        }else{
+            remoteViews.setViewVisibility(playId, View.VISIBLE);
+            remoteViews.setViewVisibility(stopId, View.INVISIBLE);
+        }
     }
 
     private PendingIntent createPendingIntent(){
@@ -359,7 +449,7 @@ public class MediaService extends Service implements View.OnClickListener{
         stackBuilder.addNextIntent(resultIntent);
 
         return stackBuilder.getPendingIntent(
-                0,
+                95,
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
     }
@@ -432,6 +522,7 @@ public class MediaService extends Service implements View.OnClickListener{
     @Override
     public void onDestroy() {
         unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(notificationListener);
         mediaPlayer.stop();
         isPlaying = false;
     }

@@ -16,6 +16,16 @@ public class Constants {
         String DB_NAME = "kr.co.picklecode.crossmedia.pickleDB";
     }
 
+    public interface INTENT_NOTIFICATION{
+        String REP_FILTER = "kr.co.picklecode.crossmedia.action.notification";
+        String ACTION_PLAY = "kr.co.picklecode.crossmedia.action.notification.play";
+        int REQ_CODE_ACTION_PLAY = 111;
+        String ACTION_STOP = "kr.co.picklecode.crossmedia.action.notification.stop";
+        int REQ_CODE_ACTION_STOP = 121;
+        String ACTION_CLOSE = "kr.co.picklecode.crossmedia.action.notification.close";
+        int REQ_CODE_ACTION_CLOSE = 131;
+    }
+
     public static final String ACTIVITY_INTENT_FILTER = "kr.co.picklecode.crossmedia.intent.activity.common";
 
     public static final String BASE_YOUTUBE_URL = "http://zacchaeus151.cafe24.com/youtube.php?vid=";

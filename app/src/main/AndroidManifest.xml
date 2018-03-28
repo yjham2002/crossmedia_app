@@ -28,6 +28,7 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"
+            android:launchMode="singleTop"
             android:theme="@style/AppThemeSolid" />
         <activity
             android:name=".ExitActivity"

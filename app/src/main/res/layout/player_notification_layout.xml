@@ -6,10 +6,12 @@
     >
 
     <LinearLayout
+        android:id="@+id/mainLayout"
         android:layout_gravity="center_vertical|left"
         android:gravity="center_vertical"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:clickable="true"
         android:orientation="horizontal"
         >
         <ImageView
