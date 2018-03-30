@@ -77,32 +77,32 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
 
-        final Article mData = UISyncManager.getInstance().getSongList().get(position);
-        switch (mData.getType()){
-            default: {
-//                holder._favicon.setImageDrawable(mContext.getResources().getDrawable(R.drawable.div_01));
-                break;
-            }
-        }
+        final Article mData = UISyncManager.getInstance().getChList().get(position);
 
-        if(mData.getImgPath() != null) {
+        if(mData.getImgPath() != null && !mData.getImgPath().trim().equals("")) {
             Picasso
                     .get()
                     .load(mData.getImgPath())
+                    .centerCrop()
+                    .resize(45, 45)
                     .placeholder(R.drawable.icon_hour_glass)
-                    .transform(new RoundedTransform(10, 0)).into(holder._img);
+                    .transform(new RoundedTransform(5, 0)).into(holder._img);
         }
         holder._title.setText(mData.getTitle());
+        holder._subTitle.setText(mData.getContent());
 
-        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null && UISyncManager.getInstance().getService().getNowPlaying().getId() == mData.getId()){
+        if(UISyncManager.getInstance().getService() != null
+                && UISyncManager.getInstance().getService().getNowPlayingMusic() != null
+                && UISyncManager.getInstance().getService().getNowPlayingMusic().getParent() != null
+                && UISyncManager.getInstance().getService().getNowPlayingMusic().getParent().getId() == mData.getId()){
             holder._title.setTypeface(null, Typeface.BOLD);
+            holder._title.setSelected(true);
+            holder._subTitle.setSelected(true);
         }else{
             holder._title.setTypeface(null, Typeface.NORMAL);
+            holder._title.setSelected(false);
+            holder._subTitle.setSelected(false);
         }
-
-        holder._subTitle.setText(mData.getContent());
-        holder._title.setSelected(true);
-        holder._subTitle.setSelected(true);
 
         holder.view.setOnClickListener(new CardView.OnClickListener() {
             @Override
@@ -141,14 +141,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     public void deleteItem(int pos){
-        UISyncManager.getInstance().getSongList().remove(pos);
+        UISyncManager.getInstance().getChList().remove(pos);
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos, getItemCount() - pos);
     }
 
     @Override
     public int getItemCount() {
-        return UISyncManager.getInstance().getSongList().size();
+        return UISyncManager.getInstance().getChList().size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -174,7 +174,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     public void addItem(Article addInfo){
-        UISyncManager.getInstance().getSongList().add(addInfo);
+        UISyncManager.getInstance().getChList().add(addInfo);
     }
 
     public void dataChange(){

@@ -41,10 +41,15 @@ public class FavorSQLManager extends SQLiteOpenHelper {
         return instance;
     }
 
-    // DB를 새로 생성할 때 호출되는 함수
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS tbl_Favor (`id` INTEGER PRIMARY KEY, `type` INTEGER, `title` TEXT, `content` TEXT, `repPath` TEXT, `imgPath` TEXT, `regDate` TEXT,  `upt_date` TEXT);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS tbl_favor_list (`id` INTEGER PRIMARY KEY, `type` INTEGER, `title` TEXT, `content` TEXT, `repPath` TEXT, `imgPath` TEXT, `regDate` TEXT,  `upt_date` TEXT);");
+    }
+
+    public void resetDB(){
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DROP TABLE tbl_favor_list");
+        db.execSQL("CREATE TABLE IF NOT EXISTS tbl_favor_list (`id` INTEGER PRIMARY KEY, `type` INTEGER, `title` TEXT, `content` TEXT, `repPath` TEXT, `imgPath` TEXT, `regDate` TEXT,  `upt_date` TEXT);");
     }
 
     // DB 업그레이드를 위해 버전이 변경될 때 호출되는 함수
@@ -54,21 +59,22 @@ public class FavorSQLManager extends SQLiteOpenHelper {
 
     public void insert(Article article) {
         SQLiteDatabase db = getWritableDatabase();
-        final String query = "INSERT INTO tbl_Favor(`id`, `type`, `title`, `content`, `repPath`, `imgPath`, `regDate`, `upt_date`) " +
+        final String query = "INSERT INTO tbl_favor_list(`id`, `type`, `title`, `content`, `repPath`, `imgPath`, `regDate`, `upt_date`) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?);";
         final SQLiteStatement statement = db.compileStatement(query);
         statement.bindLong(1, article.getId());
         statement.bindLong(2, article.getType());
         statement.bindString(3, article.getTitle());
         statement.bindString(4, article.getContent());
-        statement.bindString(5, article.getRepPath());
+        statement.bindString(5, article.getCg_max() + "");
         statement.bindString(6, article.getImgPath());
-        statement.bindString(7, article.getRegDate());
-        statement.bindString(8, article.getUptDate());
+        statement.bindString(7, article.getCg_min() + "");
+        statement.bindString(8, article.getCg_range() + "");
 
         try {
             statement.executeInsert();
         }catch (SQLiteConstraintException e){
+            e.printStackTrace();
             Log.e(this.getClass().getSimpleName(), "Constraint Violation occurred. : " + article);
         }
         db.close();
@@ -76,7 +82,7 @@ public class FavorSQLManager extends SQLiteOpenHelper {
 
     public void delete(int id) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM tbl_Favor WHERE `id`='" + id + "';");
+        db.execSQL("DELETE FROM tbl_favor_list WHERE `id`='" + id + "';");
         db.close();
     }
 
@@ -103,7 +109,7 @@ public class FavorSQLManager extends SQLiteOpenHelper {
             orderByStatement = "`id` DESC";
         }
 
-        Cursor cursor = db.rawQuery("SELECT * FROM tbl_Favor ORDER BY " + orderByStatement, null);
+        Cursor cursor = db.rawQuery("SELECT `id`, `type`, `title`, `content`, `repPath`, `imgPath`, `regDate`, `upt_date` FROM tbl_favor_list ORDER BY " + orderByStatement, null);
 
         List<Article> articles = new Vector<>();
 
@@ -113,10 +119,26 @@ public class FavorSQLManager extends SQLiteOpenHelper {
             temp.setType(cursor.getInt(1));
             temp.setTitle(cursor.getString(2));
             temp.setContent(cursor.getString(3));
-            temp.setRepPath(cursor.getString(4));
             temp.setImgPath(cursor.getString(5));
-            temp.setRegDate(cursor.getString(6));
-            temp.setUptDate(cursor.getString(7));
+            try {
+                final String cursorMax = cursor.getString(4);
+                int cMax = 0;
+                if (cursorMax != null && !cursorMax.trim().equals(""))
+                    cMax = Integer.parseInt(cursorMax);
+                temp.setCg_max(cMax);
+                final String cursorMin = cursor.getString(6);
+                int cMin = 0;
+                if (cursorMin != null && !cursorMin.trim().equals(""))
+                    cMin = Integer.parseInt(cursorMin);
+                temp.setCg_min(cMin);
+                final String cursorRan = cursor.getString(7);
+                int cRan = 0;
+                if (cursorRan != null && !cursorRan.trim().equals(""))
+                    cRan = Integer.parseInt(cursorRan);
+                temp.setCg_range(cRan);
+            }catch (NumberFormatException e){
+                e.printStackTrace();
+            }
             articles.add(temp);
         }
 

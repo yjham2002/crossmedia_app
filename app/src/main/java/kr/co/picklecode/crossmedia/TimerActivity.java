@@ -71,9 +71,9 @@ public class TimerActivity extends BaseActivity {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             if(b){
-                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlaying());
+                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent());
             }else {
-                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlaying().getId());
+                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent().getId());
             }
             final Intent intent = new Intent(Constants.ACTIVITY_INTENT_FILTER);
             intent.putExtra("action", "favorRefresh");
@@ -101,9 +101,10 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void startMusic(Article article, final boolean openSider){
+        UISyncManager.getInstance().setSongList(article.getMediaRaws());
         if(isNetworkEnable()) {
             try {
-                UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
+                UISyncManager.getInstance().getService().startChannel(article, new MediaService.VideoCallBack() {
                     @Override
                     public void onCall() {
                         if(!isNetworkEnable()){
@@ -111,7 +112,7 @@ public class TimerActivity extends BaseActivity {
                             showToast("네트워크에 연결할 수 없습니다.");
                         }
                         notifyPlayerInfoChanged();
-                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+//                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     }
                 });
 
@@ -125,7 +126,7 @@ public class TimerActivity extends BaseActivity {
     }
 
     private void resumeMusic() throws IllegalStateException{
-        final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
         startMusic(article, true);
         if(article == null) throw new IllegalStateException();
 
@@ -163,8 +164,8 @@ public class TimerActivity extends BaseActivity {
     };
 
     private void notifyPlayerInfoChanged(){
-        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
-            final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlayingMusic() != null && UISyncManager.getInstance().getService().getNowPlayingMusic().getParent() != null){
+            final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
 
             if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(article.getId())){
                 playing_favor.setOnCheckedChangeListener(null);
@@ -180,8 +181,10 @@ public class TimerActivity extends BaseActivity {
                 Picasso
                         .get()
                         .load(article.getImgPath())
+                        .centerCrop()
+                        .resize(100, 100)
                         .placeholder(R.drawable.icon_hour_glass)
-                        .transform(new RoundedTransform(10, 0)).into(playing_thumb);
+                        .transform(new RoundedTransform(5, 0)).into(playing_thumb);
             }
 
             bottom_title.setText(article.getTitle());
@@ -328,7 +331,7 @@ public class TimerActivity extends BaseActivity {
         playing_favor = findViewById(R.id.playing_favor);
         bottom_toggle = findViewById(R.id.toggle);
 
-        refreshAd(true, false);
+        refreshAd(false, true);
 
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
@@ -348,7 +351,7 @@ public class TimerActivity extends BaseActivity {
                 if(!article.isCancel()) {
                     final int inHour = article.getTimeInMins() / 60;
                     final int leftMin = article.getTimeInMins() - (inHour * 60);
-                    final String timeString = String.format("%02d:%02d:00", inHour, leftMin);
+                    final String timeString = String.format("%02d:%02d", inHour, leftMin);
                     showToast(timeString + " 후에 음악방송 재생이 중지됩니다.");
                 }else{
                     showToast("슬립타이머 설정이 취소되었습니다.");
@@ -414,9 +417,8 @@ public class TimerActivity extends BaseActivity {
         mAdapter.mListData.add(new TimerItem(45, "45 Mins", false));
         mAdapter.mListData.add(new TimerItem(60 * 1, "1 Hour", false));
         mAdapter.mListData.add(new TimerItem(60 * 2, "2 Hours", false));
-        mAdapter.mListData.add(new TimerItem(60 * 3, "3 Hours", false));
         mAdapter.mListData.add(new TimerItem(60 * 4, "4 Hours", false));
-        mAdapter.mListData.add(new TimerItem(60 * 5, "5 Hours", false));
+        mAdapter.mListData.add(new TimerItem(60 * 12, "12 Hours", false));
         if(PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false)) {
             mAdapter.mListData.add(new TimerItem(0, "Cancel", true));
         }

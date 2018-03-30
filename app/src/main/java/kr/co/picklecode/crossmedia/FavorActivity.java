@@ -114,9 +114,9 @@ public class FavorActivity extends BaseActivity {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             if(b){
-                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlaying());
+                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent());
             }else {
-                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlaying().getId());
+                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent().getId());
             }
             final Intent intent = new Intent(Constants.ACTIVITY_INTENT_FILTER);
             intent.putExtra("action", "favorRefresh");
@@ -144,9 +144,10 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void startMusic(Article article, final boolean openSider){
+        UISyncManager.getInstance().setSongList(article.getMediaRaws());
         if(isNetworkEnable()) {
             try {
-                UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
+                UISyncManager.getInstance().getService().startChannel(article, new MediaService.VideoCallBack() {
                     @Override
                     public void onCall() {
                         if(!isNetworkEnable()){
@@ -154,7 +155,7 @@ public class FavorActivity extends BaseActivity {
                             showToast("네트워크에 연결할 수 없습니다.");
                         }
                         notifyPlayerInfoChanged();
-                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+//                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     }
                 });
 
@@ -168,7 +169,7 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void resumeMusic() throws IllegalStateException{
-        final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
         startMusic(article, true);
         if(article == null) throw new IllegalStateException();
 
@@ -185,8 +186,8 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void notifyPlayerInfoChanged(){
-        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
-            final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlayingMusic() != null && UISyncManager.getInstance().getService().getNowPlayingMusic().getParent() != null){
+            final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
 
             if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(article.getId())){
                 playing_favor.setOnCheckedChangeListener(null);
@@ -202,8 +203,10 @@ public class FavorActivity extends BaseActivity {
                 Picasso
                         .get()
                         .load(article.getImgPath())
+                        .centerCrop()
+                        .resize(100, 100)
                         .placeholder(R.drawable.icon_hour_glass)
-                        .transform(new RoundedTransform(10, 0)).into(playing_thumb);
+                        .transform(new RoundedTransform(5, 0)).into(playing_thumb);
             }
 
             bottom_title.setText(article.getTitle());
@@ -283,7 +286,7 @@ public class FavorActivity extends BaseActivity {
         bottom_toggle = findViewById(R.id.toggle);
         playing_favor = findViewById(R.id.playing_favor);
 
-        refreshAd(true, false);
+        refreshAd(false, true);
 
         _topBtn = findViewById(R.id.top_btn);
 
@@ -380,14 +383,13 @@ public class FavorActivity extends BaseActivity {
     }
 
     private void loadList(){
-        UISyncManager.getInstance().getSongList().clear();
+        UISyncManager.getInstance().getChList().clear();
 
         List<Article> articles = FavorSQLManager.getInstance(this).getResultOrderBy(null);
 
         for(int e = 0; e < articles.size(); e++){
             final Article article = articles.get(e);
-
-            UISyncManager.getInstance().getSongList().add(article);
+            UISyncManager.getInstance().getChList().add(article);
         }
 
         mAdapter.dataChange();

@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -34,19 +33,26 @@ import android.widget.RemoteViews;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 import bases.Constants;
+import bases.SimpleCallback;
 import bases.imageTransform.RoundedTransform;
-import bases.utils.AlarmBroadcastReceiver;
+import bases.utils.AlarmUtils;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.MainActivity;
 import kr.co.picklecode.crossmedia.R;
 import kr.co.picklecode.crossmedia.UISyncManager;
 import kr.co.picklecode.crossmedia.models.Article;
-
-import static android.app.NotificationManager.IMPORTANCE_HIGH;
+import kr.co.picklecode.crossmedia.models.MediaRaw;
+import utils.PreferenceUtil;
 
 /**
  * Created by HP on 2018-03-16.
@@ -56,8 +62,10 @@ public class MediaService extends Service implements View.OnClickListener{
     private MediaPlayer mediaPlayer;
     private boolean isPlaying = false;
 
+    private NotificationManager mNotificationManager;
+    private static final int notiId = 20180312;
     private static boolean isInitialRunning = true;
-    private Article nowPlaying;
+    private MediaRaw nowPlayingMusic;
     private View mView;
     private WebView webView;
     private WindowManager mManager;
@@ -66,20 +74,37 @@ public class MediaService extends Service implements View.OnClickListener{
     private void nextMusic(){
         UISyncManager.getInstance().getService().setRepeatFlag(false);
         final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
-        if(nextIdx == -1){
-            startVideo(UISyncManager.getInstance().getService().getNowPlaying(), new VideoCallBack() {
+        if(nextIdx == -1) {
+            startPlay(UISyncManager.getInstance().getService().getNowPlayingMusic(), new VideoCallBack() {
                 @Override
                 public void onCall() {
                     sendRefreshingBroadcast();
                 }
-            });
+            }, true);
+        }else if(nextIdx == -2){
+            final int nextChIdx = UISyncManager.getInstance().getNextChannelIndex();
+            if(nextChIdx == -1){
+                startChannel(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent(), new VideoCallBack() {
+                    @Override
+                    public void onCall() {
+                        sendRefreshingBroadcast();
+                    }
+                });
+            }else{
+                startChannel(UISyncManager.getInstance().getChList().get(nextChIdx), new VideoCallBack() {
+                    @Override
+                    public void onCall() {
+                        sendRefreshingBroadcast();
+                    }
+                });
+            }
         }else {
-            startVideo(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
+            startPlay(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
                 @Override
                 public void onCall() {
                     sendRefreshingBroadcast();
                 }
-            });
+            }, true);
         }
     }
 
@@ -90,7 +115,7 @@ public class MediaService extends Service implements View.OnClickListener{
             Log.e("notiListener", action);
             switch (action) {
                 case Constants.INTENT_NOTIFICATION.ACTION_PLAY:{
-                    if(nowPlaying != null) startVideo(nowPlaying, new VideoCallBack() {
+                    if(nowPlayingMusic != null) startChannel(nowPlayingMusic.getParent(), new VideoCallBack() {
                         @Override
                         public void onCall() {
                             sendRefreshingBroadcast();
@@ -102,6 +127,11 @@ public class MediaService extends Service implements View.OnClickListener{
                     break;
                 }
                 case Constants.INTENT_NOTIFICATION.ACTION_CLOSE:{
+                    stopAll();
+                    mNotificationManager.cancel(notiId);
+                    AlarmUtils.getInstance().cancelAll(MediaService.this);
+                    PreferenceUtil.setBoolean(Constants.PREFERENCE.IS_ALARM_SET, false);
+                    android.os.Process.killProcess(android.os.Process.myPid());
                     System.exit(0);
                     break;
                 }
@@ -114,10 +144,11 @@ public class MediaService extends Service implements View.OnClickListener{
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
             final int state = intent.getExtras().getInt("state", -1);
-            Log.e("MediaReceiver", action);
+            Log.e("MediaReceiver", action + " : FROM " + context);
             switch (action){
                 case "refresh":{
                     showPlayerNotification();
+                    break;
                 }
                 case "state":{
                     if(state == 0){
@@ -133,8 +164,14 @@ public class MediaService extends Service implements View.OnClickListener{
         void onCall();
     }
 
+    @Override
+    public boolean onUnbind(Intent intent) {
+        stopSelf();
+        return super.onUnbind(intent);
+    }
+
     public boolean isInitialRunning() {
-        if(nowPlaying != null) isInitialRunning = false;
+        if(nowPlayingMusic != null && nowPlayingMusic.getParent() != null) isInitialRunning = false;
         return isInitialRunning;
     }
 
@@ -155,23 +192,60 @@ public class MediaService extends Service implements View.OnClickListener{
         }
     }
 
-    public Article getNowPlaying(){
-        return nowPlaying;
+    public MediaRaw getNowPlayingMusic(){
+        return nowPlayingMusic;
     }
 
-    public void startVideo(Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
-        stopMedia();
+    public void startChannel(final Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("ap_id", 374);
+        params.put("cg_id", article.getId());
+        params.put("page", -1);
+        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/video_list.php", params, new SimpleCall.CallBack() {
+            @Override
+            public void handle(JSONObject jsonObject) {
+                final List<MediaRaw> mediaRaws = new ArrayList<>();
+                try {
+                    final JSONObject result = jsonObject.getJSONObject("result");
+                    final JSONArray json_arr = result.getJSONArray("list");
+                    for(int j = 0; j < json_arr.length(); j++){
+                        final JSONObject ch = json_arr.getJSONObject(j);
+                        final MediaRaw mediaRaw = new MediaRaw();
+                        mediaRaw.setParent(article);
+                        mediaRaw.setCg_id(article.getId());
+                        mediaRaw.setCh_id(ch.getInt("vd_id"));
+                        mediaRaw.setTitle(ch.getString("vd_name"));
+                        mediaRaw.setImgPath(ch.getString("vd_thum_url"));
+                        mediaRaw.setType(ch.getInt("vd_internet_use"));
+                        mediaRaw.setRepPath(ch.getString("vd_url"));
+                        mediaRaws.add(mediaRaw);
+                    }
+                    article.setMediaRaws(mediaRaws);
+                    Collections.shuffle(article.getMediaRaws());
+                    UISyncManager.getInstance().setSongList(article.getMediaRaws());
+                    startPlay(article.getMediaRaws().get(0), videoCallBack, false);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void startPlay(MediaRaw mediaRaw, final VideoCallBack videoCallBack, boolean nonStop) throws IllegalArgumentException{
+        Log.e("startPlay", mediaRaw.toString());
+//        if(!nonStop)
+            stopMedia();
         repeatFlag = false;
         Log.e("MediaService", "startVideo Invoked.");
-        if(article == null) {
+        if(mediaRaw == null) {
             stopMedia();
             throw new IllegalArgumentException("The channel was null.");
         }
 
-        this.nowPlaying = article;
-        final String url = article.getRepPath();
+        this.nowPlayingMusic = mediaRaw;
+        final String url = mediaRaw.getRepPath();
 
-        if(article.getType() == 0){ // YouTube
+        if(mediaRaw.getType() == 0 || mediaRaw.getType() == 1){ // YouTube
             String filtered = null;
             try {
                 final int paramPos = url.indexOf("?v=") + 3;
@@ -200,7 +274,7 @@ public class MediaService extends Service implements View.OnClickListener{
             }, 1200);
 
             checkState();
-        }else if(article.getType() == 2){ // Saycast
+        }else if(mediaRaw.getType() == 2){ // Saycast
             intervalStateCheckHandler.removeCallbacks(stateCheck); // cancel state check
 
             SimpleCall.getHttp("http://zacchaeus151.cafe24.com/saycast.php?vd_internet_radio_url=" + url, new Handler(){
@@ -267,6 +341,8 @@ public class MediaService extends Service implements View.OnClickListener{
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         LayoutInflater mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mView = mInflater.inflate(R.layout.always_on_display_layout, null);
@@ -350,8 +426,6 @@ public class MediaService extends Service implements View.OnClickListener{
 
         Log.e("MediaService", "onCreate : webView initialized.");
 
-        showPlayerNotification();
-
         mManager.addView(mView, mParams);
     }
 
@@ -359,7 +433,6 @@ public class MediaService extends Service implements View.OnClickListener{
 
         Notification.Builder mBuilder = createNotification();
 
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        mNotificationManager.notify(20180312, mBuilder.build());
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -406,30 +479,34 @@ public class MediaService extends Service implements View.OnClickListener{
         mBuilder.setOngoing(true);
 
         final Notification notification = mBuilder.build();
-        final int notiId = 20180312;
 
-        if(nowPlaying == null) {
+        if(nowPlayingMusic == null || nowPlayingMusic.getParent() == null) {
             remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
             remoteViews.setTextViewText(R.id.noti_title, "재생중인 채널이 없습니다.");
             remoteViews.setTextViewText(R.id.noti_sub, "");
         }else{
             remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
-            if(nowPlaying.getImgPath() != null) {
+            if(nowPlayingMusic.getParent().getImgPath() != null && !nowPlayingMusic.getParent().getImgPath().trim().equals("")) {
                 try {
                     Picasso
                             .get()
-                            .load(nowPlaying.getImgPath())
-                            .transform(new RoundedTransform(10, 0)).into(remoteViews, R.id.noti_img, notiId, notification);
+                            .load(nowPlayingMusic.getParent().getImgPath())
+                            .centerCrop()
+                            .resize(50, 50)
+                            .transform(new RoundedTransform(5, 0)).into(remoteViews, R.id.noti_img, notiId, notification);
                 }catch (Exception e){
                     e.printStackTrace();
                     remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);
                 }
             }
-            remoteViews.setTextViewText(R.id.noti_title, nowPlaying.getTitle());
-            remoteViews.setTextViewText(R.id.noti_sub, nowPlaying.getContent());
+            remoteViews.setTextViewText(R.id.noti_title, nowPlayingMusic.getParent().getTitle());
+            remoteViews.setTextViewText(R.id.noti_sub, nowPlayingMusic.getParent().getContent());
         }
         setNotificationPlaying(remoteViews, R.id.noti_play, R.id.noti_pause, isPlaying);
-        startForeground(notiId, notification);
+
+        Log.e("MediaService", "Notification showed");
+
+        if(nowPlayingMusic != null && nowPlayingMusic.getParent() != null) mNotificationManager.notify(notiId, notification);
     }
 
     private void setNotificationPlaying(RemoteViews remoteViews, int playId, int stopId, boolean isPlaying){
@@ -491,6 +568,12 @@ public class MediaService extends Service implements View.OnClickListener{
         sendRefreshingBroadcast();
     }
 
+    public void sendFinishingBroadcast(){
+        final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+        activityIntent1.putExtra("action", "finish");
+        this.sendBroadcast(activityIntent1);
+    }
+
     public void sendRefreshingBroadcast(){
         final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
         activityIntent1.putExtra("action", "refresh");
@@ -501,7 +584,11 @@ public class MediaService extends Service implements View.OnClickListener{
         if(mView != null){
             mManager.removeView(mView);
         }
-        stopMedia();
+        webView.loadUrl("javascript:player.pauseVideo();");
+        Log.e("MediaService", "stopMedia Invoked.");
+        mediaPlayer.reset();
+        isPlaying = false;
+
         this.stopSelf();
     }
 
@@ -516,7 +603,7 @@ public class MediaService extends Service implements View.OnClickListener{
 //        if (!mediaPlayer.isPlaying()) {
 //            mediaPlayer.start();
 //        }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override

@@ -2,17 +2,14 @@ package kr.co.picklecode.crossmedia;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -32,7 +29,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
@@ -44,18 +40,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import bases.BaseActivity;
 
-import bases.BaseApp;
 import bases.Constants;
+import bases.SimpleCallback;
 import bases.imageTransform.RoundedTransform;
 import comm.SimpleCall;
 import kr.co.picklecode.crossmedia.models.AdapterCall;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
+import kr.co.picklecode.crossmedia.models.MediaRaw;
 import kr.co.picklecode.crossmedia.observers.ObserverCallback;
 import kr.co.picklecode.crossmedia.observers.SettingsContentObserver;
 import kr.co.picklecode.crossmedia.services.MediaService;
@@ -131,9 +129,9 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             if(b){
-                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlaying());
+                FavorSQLManager.getInstance(mContext).insert(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent());
             }else {
-                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlaying().getId());
+                FavorSQLManager.getInstance(mContext).delete(UISyncManager.getInstance().getService().getNowPlayingMusic().getParent().getId());
             }
             final Intent intent = new Intent(Constants.ACTIVITY_INTENT_FILTER);
             intent.putExtra("action", "favorRefresh");
@@ -177,7 +175,6 @@ public class MainActivity extends BaseActivity {
         setTitle("");
 
         init();
-
     }
 
     private void initControls() {
@@ -224,9 +221,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startMusic(Article article, final boolean openSider){
+        UISyncManager.getInstance().setSongList(article.getMediaRaws());
         if(isNetworkEnable()) {
             try {
-                UISyncManager.getInstance().getService().startVideo(article, new MediaService.VideoCallBack() {
+                UISyncManager.getInstance().getService().startChannel(article, new MediaService.VideoCallBack() {
                     @Override
                     public void onCall() {
                         if(!isNetworkEnable()){
@@ -234,7 +232,7 @@ public class MainActivity extends BaseActivity {
                             showToast("네트워크에 연결할 수 없습니다.");
                         }
                         notifyPlayerInfoChanged();
-                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+//                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     }
                 });
 
@@ -248,7 +246,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void resumeMusic() throws IllegalStateException{
-        final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
         startMusic(article, true);
         if(article == null) throw new IllegalStateException();
 
@@ -256,8 +254,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void notifyPlayerInfoChanged(){
-        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlaying() != null){
-            final Article article = UISyncManager.getInstance().getService().getNowPlaying();
+        if(UISyncManager.getInstance().getService() != null && UISyncManager.getInstance().getService().getNowPlayingMusic() != null && UISyncManager.getInstance().getService().getNowPlayingMusic().getParent() != null){
+            final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
 
             if(FavorSQLManager.getInstance(mContext).getPrimaryKeySet().contains(article.getId())){
                 playing_favor.setOnCheckedChangeListener(null);
@@ -273,8 +271,10 @@ public class MainActivity extends BaseActivity {
                 Picasso
                         .get()
                         .load(article.getImgPath())
+                        .centerCrop()
+                        .resize(100, 100)
                         .placeholder(R.drawable.icon_hour_glass)
-                        .transform(new RoundedTransform(10, 0)).into(playing_thumb);
+                        .transform(new RoundedTransform(5, 0)).into(playing_thumb);
             }
 
             bottom_title.setText(article.getTitle());
@@ -304,7 +304,7 @@ public class MainActivity extends BaseActivity {
 
         initControls();
 
-        refreshAd(true, false);
+        refreshAd(false, true);
 
         playingTimer = findViewById(R.id.playing_timer);
 
@@ -411,7 +411,7 @@ public class MainActivity extends BaseActivity {
                 }
 
                 if (!mRecyclerView.canScrollVertically(1)) {
-                    if(currentPage < totalPage && !isLoading) loadList(UISyncManager.getInstance().getChannelScheme(), ++currentPage);
+//                    if(currentPage < totalPage && !isLoading) loadList(UISyncManager.getInstance().getChannelScheme(), ++currentPage);
                 }
             }
 
@@ -428,6 +428,7 @@ public class MainActivity extends BaseActivity {
         mAdapterMenu = new SchemeAdapter(this, R.layout.layout_scheme, new AdapterCall<ChannelScheme>(){
             @Override
             public void onCall(ChannelScheme article) {
+                closeDrawer();
                 loadList(article, 1);
             }
         });
@@ -440,8 +441,6 @@ public class MainActivity extends BaseActivity {
         btn_favor = findViewById(R.id.top_fav);
 
         setClick(btn_favor, btn_menu_top, sleepTimer, arrowDown, _topBtn, playingTimer, playing_control, playing_sub, playing_title);
-
-        loadInterstitialAd();
 
         if(!isNetworkEnable()){
             showToast("네트워크에 연결할 수 없어 앱을 종료합니다.");
@@ -456,70 +455,71 @@ public class MainActivity extends BaseActivity {
         notifyPlayerInfoChanged();
     }
 
-    private int currentPage = 1;
-    private int totalPage = 0;
-    private int totalCount = 0;
     private boolean isLoading = false;
 
     private void loadList(ChannelScheme channelScheme, int page){
-
-        boolean init = false;
-        if(page == 0 || page == 1) init = true;
 
         if(!UISyncManager.getInstance().isSchemeLoaded()){
             UISyncManager.getInstance().setChannelScheme(channelScheme);
         }
 
-        if(init){
-            currentPage = 1;
-            totalPage = 0;
-            totalCount = 0;
-            UISyncManager.getInstance().resetInitialized();
-            UISyncManager.getInstance().setChannelScheme(channelScheme);
-            UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
-        }
-
-        final boolean finalInitVar = init;
+        UISyncManager.getInstance().resetInitialized();
+        UISyncManager.getInstance().setChannelScheme(channelScheme);
+        UISyncManager.getInstance().syncCurrentText(this, R.id.cg_current_id);
 
         titleDisplay.setText(channelScheme.getTitle());
 
         isLoading = true;
         progress.setVisibility(View.VISIBLE);
         progressMain.setVisibility(View.VISIBLE);
-        if(init) UISyncManager.getInstance().getSongList().clear();
+
+        UISyncManager.getInstance().getChList().clear();
 
         Map<String, Object> params = new HashMap<>();
-        params.put("ap_id", 374);
+        params.put("app_id", 374);
         params.put("cg_id", channelScheme.getId());
-        params.put("page", page);
-        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/video_list.php", params, new SimpleCall.CallBack() {
+        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/radio_list.php", params, new SimpleCall.CallBack() {
             @Override
             public void handle(JSONObject jsonObject) {
                 try {
-                    final JSONObject result = jsonObject.getJSONObject("result");
-                    final JSONArray json_arr  = result.getJSONArray("list");
-                    totalCount = result.getInt("total_count");
-                    totalPage = result.getInt("total_page");
-                    currentPage = result.getInt("page");
+                    final JSONArray json_arr  = jsonObject.getJSONArray("result");
 
                     for(int i = 0; i < json_arr.length(); i++){
-                        JSONObject object = json_arr.getJSONObject(i);
+                        final JSONObject object = json_arr.getJSONObject(i);
+                        final JSONArray chs = object.getJSONArray("channels");
                         final Article article = new Article();
-                        article.setId(object.getInt("vd_id"));
-                        article.setType(object.getInt("vd_internet_use"));
-                        article.setRepPath(object.getString("vd_url"));
-                        article.setImgPath(object.getString("vd_thum_url"));
-                        article.setTitle(object.getString("vd_title"));
-                        article.setContent(object.getString("vd_name"));
+                        article.setId(object.getInt("cg_id"));
+                        article.setType(-1);
+                        article.setImgPath(object.getString("cg_thumb"));
+                        article.setTitle(object.getString("cg_name"));
+                        article.setContent(object.getString("cg_sub_name"));
+                        article.setCg_max(object.getInt("cg_max"));
+                        article.setCg_min(object.getInt("cg_min"));
+                        article.setCg_range(object.getInt("cg_range"));
+                        article.setCg_current(0);
 
-                        UISyncManager.getInstance().getSongList().add(article);
+                        for(int j = 0; j < chs.length(); j++){
+                            final JSONObject ch = chs.getJSONObject(j);
+                            final MediaRaw mediaRaw = new MediaRaw();
+                            mediaRaw.setParent(article);
+                            mediaRaw.setCg_id(ch.getInt("cg_id"));
+                            mediaRaw.setCh_id(ch.getInt("ch_id"));
+                            mediaRaw.setTitle(ch.getString("ch_name"));
+                            mediaRaw.setImgPath(ch.getString("ch_thumb"));
+                            mediaRaw.setType(ch.getInt("vd_internet_use"));
+                            mediaRaw.setRegDate(ch.getString("vd_url"));
+                            article.getMediaRaws().add(mediaRaw);
+                        }
+
+                        Collections.shuffle(article.getMediaRaws());
+                        UISyncManager.getInstance().getChList().add(article);
                     }
 
 //                    Log.e("result", json_arr.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }finally {
-                    if(UISyncManager.getInstance().getSongList().size() > 0) {
+                    if(UISyncManager.getInstance().getChList().size() > 0) {
                         /**
                          * Must have to be located above the notifyDataSetChanged().
                          * cause, the marking process need to be ran after the service-now-playing setting process.
@@ -527,18 +527,18 @@ public class MainActivity extends BaseActivity {
                         if(UISyncManager.getInstance().getService().isInitialRunning()) {
                             Log.e("initialF", "play");
                             mAdapter.setClickedPos(0);
-                            startMusic(UISyncManager.getInstance().getSongList().get(0), false);
+                            startMusic(UISyncManager.getInstance().getChList().get(0), false);
                             UISyncManager.getInstance().getService().setInitialRunning(false);
                         }
                     }
+
+                    Log.e("mASize", UISyncManager.getInstance().getChList().size() + "");
 
                     mAdapter.dataChange();
                     progress.setVisibility(View.INVISIBLE);
                     progressMain.setVisibility(View.INVISIBLE);
                     isLoading = false;
-                    if(finalInitVar){
-                        mRecyclerView.smoothScrollToPosition(0);
-                    }
+                    mRecyclerView.smoothScrollToPosition(0);
                 }
             }
         });
@@ -562,10 +562,6 @@ public class MainActivity extends BaseActivity {
                         article.setTitle(object.getString("cg_name"));
                         article.setId(object.getInt("cg_id"));
                         article.setOrder(object.getInt("cg_order"));
-                        article.setCg_max(object.getInt("cg_max"));
-                        article.setCg_min(object.getInt("cg_min"));
-                        article.setCg_range(object.getInt("cg_range"));
-                        article.setCg_cur(object.getInt("cg_current"));
 
                         mAdapterMenu.mListData.add(article);
                         if(i == 0){

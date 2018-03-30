@@ -13,7 +13,7 @@ public class Constants {
     }
 
     public interface DATABASE{
-        String DB_NAME = "kr.co.picklecode.crossmedia.pickleDB";
+        String DB_NAME = "kr.co.picklecode.crossmedia.pickDB";
     }
 
     public interface INTENT_NOTIFICATION{

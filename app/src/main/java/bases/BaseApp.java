@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.google.android.gms.ads.MobileAds;
 
@@ -27,6 +28,9 @@ public class BaseApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Log.e("BaseApp", "onCreate");
+
         this.context = this.getApplicationContext();
         MobileAds.initialize(this, ADMOB_AD_ID);
         final Intent backgroundIntentCall = new Intent(getBaseContext(), MediaService.class);

@@ -118,7 +118,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         return isConnected;
     }
 
-    protected void loadInterstitialAd() {
+    protected void loadInterstitialAd(final SimpleCallback simpleCallback) {
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-1846833106939117/2370912396");
         mInterstitialAd.setAdListener(new AdListener() {
@@ -128,6 +128,14 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
                 super.onAdLoaded();
                 if(mInterstitialAd.isLoaded()) {
                     mInterstitialAd.show();
+                }
+            }
+
+            @Override
+            public void onAdClosed() {
+                super.onAdClosed();
+                if(simpleCallback != null){
+                    simpleCallback.callback();
                 }
             }
 

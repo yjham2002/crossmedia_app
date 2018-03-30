@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import bases.BaseActivity;
+import bases.SimpleCallback;
 
 public class IntroActivity extends BaseActivity {
 
@@ -19,10 +20,15 @@ public class IntroActivity extends BaseActivity {
 
     private Runnable introRunnable = new Runnable() {
         public void run() {
-            Intent i = new Intent(IntroActivity.this, MainActivity.class);;
-            startActivity(i);
-            finish();
-            overridePendingTransition(R.anim.alpha_in, R.anim.alpha_out);
+            loadInterstitialAd(new SimpleCallback() {
+                @Override
+                public void callback() {
+                    Intent i = new Intent(IntroActivity.this, MainActivity.class);;
+                    startActivity(i);
+                    finish();
+                    overridePendingTransition(R.anim.alpha_in, R.anim.alpha_out);
+                }
+            });
         }
     };
 

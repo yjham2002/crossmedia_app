@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Random;
 
 import bases.Constants;
+import bases.utils.AlarmUtils;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.ChannelScheme;
+import kr.co.picklecode.crossmedia.models.MediaRaw;
 import kr.co.picklecode.crossmedia.services.MediaService;
 import utils.PreferenceUtil;
 
@@ -22,24 +24,28 @@ import utils.PreferenceUtil;
 
 public class UISyncManager {
 
-    private List<Article> songList = new ArrayList<>();
+    private List<Article> chList = new ArrayList<>();
+    private List<MediaRaw> songList = new ArrayList<>();
+
+    public static final int INDEX_CANNOT_FIND = -1;
+    public static final int INDEX_NEXT_CHANNEL = -2;
 
     public int getNextSongIndex(){
         if(songList.size() == 0){
-            return -1;
+            return INDEX_CANNOT_FIND;
         }
 
-        int current = -1;
+        int current = INDEX_CANNOT_FIND;
         for(int e = 0; e < songList.size(); e++){
-            if(getService().getNowPlaying().getId() == songList.get(e).getId()){
+            if(getService().getNowPlayingMusic().getCh_id() == songList.get(e).getCh_id()){
                 current = e;
                 break;
             }
         }
         if(current + 1 >= songList.size()){
-            return 0;
+            return INDEX_NEXT_CHANNEL;
         }else {
-            if(current == -1){
+            if(current == INDEX_CANNOT_FIND){
                 return 0;
             }else {
                 return current + 1;
@@ -47,11 +53,42 @@ public class UISyncManager {
         }
     }
 
-    public List<Article> getSongList() {
+    public int getNextChannelIndex(){
+        if(chList.size() == 0){
+            return INDEX_CANNOT_FIND;
+        }
+
+        int current = INDEX_CANNOT_FIND;
+        for(int e = 0; e < chList.size(); e++){
+            if(getService().getNowPlayingMusic().getParent().getId() == chList.get(e).getId()){
+                current = e;
+                break;
+            }
+        }
+        if(current + 1 >= chList.size()){
+            return 0;
+        }else {
+            if(current == INDEX_CANNOT_FIND){
+                return 0;
+            }else {
+                return current + 1;
+            }
+        }
+    }
+
+    public List<Article> getChList() {
+        return chList;
+    }
+
+    public void setChList(List<Article> chList) {
+        this.chList = chList;
+    }
+
+    public List<MediaRaw> getSongList() {
         return songList;
     }
 
-    public void setSongList(List<Article> songList) {
+    public void setSongList(List<MediaRaw> songList) {
         this.songList = songList;
     }
 
@@ -89,33 +126,34 @@ public class UISyncManager {
     }
 
     private int getRandomCount(boolean isInit){
+        if(mServer == null || mServer.getNowPlayingMusic() == null) return 0;
         //TODO
-        int diff = channelScheme.getCg_max() - channelScheme.getCg_min();
+        int diff = mServer.getNowPlayingMusic().getParent().getCg_max() - mServer.getNowPlayingMusic().getParent().getCg_min();
         int toRet;
         if(diff <= 0){
-            toRet = channelScheme.getCg_min();
+            toRet = mServer.getNowPlayingMusic().getParent().getCg_min();
         }else{
-            toRet = channelScheme.getCg_min() + new Random().nextInt(diff);
+            toRet = mServer.getNowPlayingMusic().getParent().getCg_min() + new Random().nextInt(diff);
         }
 
-        if(channelScheme.getCg_range() <= 0) return toRet;
-        final int times = diff / channelScheme.getCg_range();
+        if(mServer.getNowPlayingMusic().getParent().getCg_range() <= 0) return toRet;
+        final int times = diff / mServer.getNowPlayingMusic().getParent().getCg_range();
         if(times <= 0) return toRet;
-        int toGo = new Random().nextInt(times + 1) * channelScheme.getCg_range();
-        if(isInit) return toGo + channelScheme.getCg_min();
+        int toGo = new Random().nextInt(times + 1) * mServer.getNowPlayingMusic().getParent().getCg_range();
+        if(isInit) return toGo + mServer.getNowPlayingMusic().getParent().getCg_min();
         final boolean isNegative = new Random().nextBoolean();
 
         if(!isNegative) toGo *= -1;
 
-        if(channelScheme.getCg_cur() + toGo < channelScheme.getCg_min()){
+        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo < channelScheme.getCg_min()){
             toGo *= -1;
         }
 
-        if(channelScheme.getCg_cur() + toGo > channelScheme.getCg_max()){
+        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo > channelScheme.getCg_max()){
             toGo *= -1;
         }
 
-        return channelScheme.getCg_cur() + toGo;
+        return mServer.getNowPlayingMusic().getParent().getCg_current() + toGo;
     }
 
     private void updateThisChannelScheme(int newValue){
@@ -129,6 +167,7 @@ public class UISyncManager {
         @Override
         public void run() {
             syncCurrentTextInternal(context, currentText, true);
+            stopSyncText();
             repeatingSyncHandler.postDelayed(repeatingRunnable, syncInterval);
         }
     };
@@ -181,7 +220,8 @@ public class UISyncManager {
     public void syncTimerSet(Activity activity, int id){
         if(activity.findViewById(id) != null){
             if(activity.findViewById(id) instanceof ToggleButton){
-                ((ToggleButton)activity.findViewById(id)).setChecked(PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false));
+                boolean isAlarmSet = PreferenceUtil.getBoolean(Constants.PREFERENCE.IS_ALARM_SET, false) && AlarmUtils.getInstance().getCurrentSetAlarm(activity) != null;
+                ((ToggleButton)activity.findViewById(id)).setChecked(isAlarmSet);
             }
         }
     }
