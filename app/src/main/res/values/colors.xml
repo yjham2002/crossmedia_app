@@ -36,6 +36,7 @@
     <color name="orange">#FFBB00</color>
     <color name="skyblue">#00B4DB</color>
     <color name="aluminum">#999999</color>
+    <color name="aluminum_dark">#696969</color>
     <color name="base">#AAAAAA</color>
     <color name="pastel">#FFDD73</color>
     <color name="dark">#474747</color>

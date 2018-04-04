@@ -45,6 +45,7 @@ public class ExitActivity extends BaseActivity {
                         sendBroadcast(i);
                     }
                 }, 1000);
+                UISyncManager.getInstance().getService().stopMedia();
                 finish();
             }
                 break;

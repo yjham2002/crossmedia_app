@@ -331,6 +331,10 @@ public class TimerActivity extends BaseActivity {
         playing_favor = findViewById(R.id.playing_favor);
         bottom_toggle = findViewById(R.id.toggle);
 
+        playing_title.setSelected(true);
+        playing_sub.setSelected(true);
+        bottom_title.setSelected(true);
+
         refreshAd(false, true);
 
         mAdView = findViewById(R.id.adView);

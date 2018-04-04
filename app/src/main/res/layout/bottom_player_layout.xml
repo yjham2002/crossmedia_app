@@ -17,12 +17,12 @@
         android:orientation="horizontal">
         <TextView
             android:id="@+id/bottom_title"
-            android:layout_width="wrap_content"
+            android:layout_width="210dp"
             android:layout_height="match_parent"
             android:textColor="@color/white"
             android:singleLine="true"
             android:ellipsize="marquee"
-            android:gravity="center"
+            android:gravity="left|center_vertical"
             android:textSize="@dimen/font_size_strong"
             android:text="재생중인 채널이 없습니다"
             />

@@ -316,6 +316,10 @@ public class MainActivity extends BaseActivity {
         bottom_toggle = findViewById(R.id.toggle);
         playing_favor = findViewById(R.id.playing_favor);
 
+        playing_title.setSelected(true);
+        playing_sub.setSelected(true);
+        bottom_title.setSelected(true);
+
         titleDisplay = findViewById(R.id.titleDisplay);
 
         _topBtn = findViewById(R.id.top_btn);
@@ -500,6 +504,7 @@ public class MainActivity extends BaseActivity {
 
                         for(int j = 0; j < chs.length(); j++){
                             final JSONObject ch = chs.getJSONObject(j);
+                            if(ch.getString("cg_id") == null || ch.getString("cg_id").equals("null")) continue;
                             final MediaRaw mediaRaw = new MediaRaw();
                             mediaRaw.setParent(article);
                             mediaRaw.setCg_id(ch.getInt("cg_id"));

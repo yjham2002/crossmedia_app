@@ -286,6 +286,10 @@ public class FavorActivity extends BaseActivity {
         bottom_toggle = findViewById(R.id.toggle);
         playing_favor = findViewById(R.id.playing_favor);
 
+        playing_title.setSelected(true);
+        playing_sub.setSelected(true);
+        bottom_title.setSelected(true);
+
         refreshAd(false, true);
 
         _topBtn = findViewById(R.id.top_btn);

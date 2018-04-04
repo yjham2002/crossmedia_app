@@ -30,6 +30,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -210,6 +211,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     final JSONArray json_arr = result.getJSONArray("list");
                     for(int j = 0; j < json_arr.length(); j++){
                         final JSONObject ch = json_arr.getJSONObject(j);
+                        if(ch.getString("vd_id") == null || ch.getString("vd_id").equals("null")) continue;
                         final MediaRaw mediaRaw = new MediaRaw();
                         mediaRaw.setParent(article);
                         mediaRaw.setCg_id(article.getId());
@@ -311,7 +313,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     }catch (IOException e){
                         e.printStackTrace();
                         stopMedia();
-                        throw new IllegalArgumentException("Cannot get server address of saycast");
+//                        throw new IllegalArgumentException("Cannot get server address of saycast");
                     }
                 }
             });
@@ -479,6 +481,8 @@ public class MediaService extends Service implements View.OnClickListener{
         mBuilder.setOngoing(true);
 
         final Notification notification = mBuilder.build();
+
+
 
         if(nowPlayingMusic == null || nowPlayingMusic.getParent() == null) {
             remoteViews.setImageViewResource(R.id.noti_img, R.drawable.icon_hour_glass);

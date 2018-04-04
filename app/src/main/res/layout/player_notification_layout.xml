@@ -29,22 +29,35 @@
                 android:id="@+id/noti_title"
                 android:ellipsize="marquee"
                 android:singleLine="true"
-                android:textColor="@color/black"
+                android:textColor="@color/aluminum_dark"
                 android:gravity="center_vertical|left"
+                android:marqueeRepeatLimit="marquee_forever"
                 android:textSize="@dimen/font_size_strong"
                 android:text="테스트 채널"
+                android:fadingEdge="horizontal"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:layout_width="150dp"
-                android:layout_height="wrap_content" />
+                android:scrollHorizontally="false"
+                android:layout_height="wrap_content"
+                ><requestFocus/> </TextView>
             <TextView
                 android:id="@+id/noti_sub"
                 android:ellipsize="marquee"
+                android:focusable="true"
+                android:fadingEdge="horizontal"
+                android:scrollHorizontally="false"
+                android:focusableInTouchMode="true"
                 android:textColor="@color/aluminum"
                 android:singleLine="true"
+                android:marqueeRepeatLimit="marquee_forever"
                 android:gravity="center_vertical|left"
                 android:textSize="@dimen/font_size_default"
                 android:text="설명이 입력됩니다."
                 android:layout_width="160dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" >
+                <requestFocus/>
+            </TextView>
         </LinearLayout>
     </LinearLayout>
 
