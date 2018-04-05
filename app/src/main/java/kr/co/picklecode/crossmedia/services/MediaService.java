@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -195,6 +196,44 @@ public class MediaService extends Service implements View.OnClickListener{
 
     public MediaRaw getNowPlayingMusic(){
         return nowPlayingMusic;
+    }
+
+    public void loadChannel(final Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("ap_id", 374);
+        params.put("cg_id", article.getId());
+        params.put("page", -1);
+        SimpleCall.getHttpJson("http://zacchaeus151.cafe24.com/api/video_list.php", params, new SimpleCall.CallBack() {
+            @Override
+            public void handle(JSONObject jsonObject) {
+                final List<MediaRaw> mediaRaws = new ArrayList<>();
+                try {
+                    final JSONObject result = jsonObject.getJSONObject("result");
+                    final JSONArray json_arr = result.getJSONArray("list");
+                    for(int j = 0; j < json_arr.length(); j++){
+                        final JSONObject ch = json_arr.getJSONObject(j);
+                        if(ch.getString("vd_id") == null || ch.getString("vd_id").equals("null")) continue;
+                        final MediaRaw mediaRaw = new MediaRaw();
+                        mediaRaw.setParent(article);
+                        mediaRaw.setCg_id(article.getId());
+                        mediaRaw.setCh_id(ch.getInt("vd_id"));
+                        mediaRaw.setTitle(ch.getString("vd_name"));
+                        mediaRaw.setImgPath(ch.getString("vd_thum_url"));
+                        mediaRaw.setType(ch.getInt("vd_internet_use"));
+                        mediaRaw.setRepPath(ch.getString("vd_url"));
+                        mediaRaws.add(mediaRaw);
+                    }
+                    article.setMediaRaws(mediaRaws);
+                    Collections.shuffle(article.getMediaRaws());
+                    UISyncManager.getInstance().setSongList(article.getMediaRaws());
+                    if(videoCallBack != null) videoCallBack.onCall();
+
+                    MediaService.this.nowPlayingMusic = article.getMediaRaws().get(0);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void startChannel(final Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{

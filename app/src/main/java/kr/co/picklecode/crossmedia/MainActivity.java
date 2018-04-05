@@ -249,6 +249,28 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void loadMusic(Article article){
+        UISyncManager.getInstance().setSongList(article.getMediaRaws());
+        if(isNetworkEnable()) {
+            try {
+                UISyncManager.getInstance().getService().loadChannel(article, new MediaService.VideoCallBack() {
+                    @Override
+                    public void onCall() {
+                        UISyncManager.getInstance().getService().stopMedia();
+                        notifyPlayerInfoChanged();
+//                        if(openSider) controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                    }
+                });
+
+            } catch (IllegalArgumentException e) {
+                showToast("로드할 수 없습니다.");
+            }
+            notifyPlayerInfoChanged();
+        }else {
+            showToast("네트워크에 연결할 수 없습니다.");
+        }
+    }
+
     private void resumeMusic() throws IllegalStateException{
         final Article article = UISyncManager.getInstance().getService().getNowPlayingMusic().getParent();
         startMusic(article, true);
@@ -538,7 +560,7 @@ public class MainActivity extends BaseActivity {
                         if(UISyncManager.getInstance().getService().isInitialRunning()) {
                             Log.e("initialF", "play");
                             mAdapter.setClickedPos(0);
-                            startMusic(UISyncManager.getInstance().getChList().get(0), false);
+                            loadMusic(UISyncManager.getInstance().getChList().get(0));
                             UISyncManager.getInstance().getService().setInitialRunning(false);
                         }
                     }
