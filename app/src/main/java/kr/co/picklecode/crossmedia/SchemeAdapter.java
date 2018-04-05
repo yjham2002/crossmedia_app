@@ -48,6 +48,14 @@ public class SchemeAdapter extends RecyclerView.Adapter<SchemeAdapter.ViewHolder
         this.addition = addition;
     }
 
+    public int getClickedPos() {
+        return clickedPos;
+    }
+
+    public void setClickedPos(int clickedPos) {
+        this.clickedPos = clickedPos;
+    }
+
     @Override
     public int getItemViewType(int position){
         if(position == 0) return HEADER;

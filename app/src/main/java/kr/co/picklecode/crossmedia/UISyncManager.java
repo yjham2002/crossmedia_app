@@ -3,6 +3,7 @@ package kr.co.picklecode.crossmedia;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -127,29 +128,23 @@ public class UISyncManager {
 
     private int getRandomCount(boolean isInit){
         if(mServer == null || mServer.getNowPlayingMusic() == null) return 0;
-        //TODO
-        int diff = mServer.getNowPlayingMusic().getParent().getCg_max() - mServer.getNowPlayingMusic().getParent().getCg_min();
-        int toRet;
-        if(diff <= 0){
-            toRet = mServer.getNowPlayingMusic().getParent().getCg_min();
-        }else{
-            toRet = mServer.getNowPlayingMusic().getParent().getCg_min() + new Random().nextInt(diff);
-        }
 
-        if(mServer.getNowPlayingMusic().getParent().getCg_range() <= 0) return toRet;
-        final int times = diff / mServer.getNowPlayingMusic().getParent().getCg_range();
-        if(times <= 0) return toRet;
-        int toGo = new Random().nextInt(times + 1) * mServer.getNowPlayingMusic().getParent().getCg_range();
-        if(isInit) return toGo + mServer.getNowPlayingMusic().getParent().getCg_min();
+        Article article = mServer.getNowPlayingMusic().getParent();
+
+        if(isInit) article.setCg_current(article.getCg_min() + new Random().nextInt(article.getCg_range()));
+        if(article.getCg_range() <= 0) return article.getCg_current();
+
+        int toGo = new Random().nextInt(article.getCg_range() + 1);
+
         final boolean isNegative = new Random().nextBoolean();
 
         if(!isNegative) toGo *= -1;
 
-        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo < channelScheme.getCg_min()){
+        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo < article.getCg_min()){
             toGo *= -1;
         }
 
-        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo > channelScheme.getCg_max()){
+        if(mServer.getNowPlayingMusic().getParent().getCg_current() + toGo > article.getCg_max()){
             toGo *= -1;
         }
 
@@ -158,7 +153,7 @@ public class UISyncManager {
 
     private void updateThisChannelScheme(int newValue){
         channelScheme.setCg_cur(newValue);
-        //TODO
+        if(mServer.getNowPlayingMusic().getParent() != null) mServer.getNowPlayingMusic().getParent().setCg_current(newValue);
     }
 
     private int syncInterval = 10000;
@@ -200,7 +195,7 @@ public class UISyncManager {
         // Not on this Project
         this.context = activity;
         this.currentText = id;
-        syncCurrentTextInternal(activity, id, !isInitialized);
+        syncCurrentTextInternal(activity, id, isInitialized);
         repeatingSyncHandler.postDelayed(repeatingRunnable, syncInterval); // Continuous Calling - SyncHandler
     }
 
@@ -210,7 +205,7 @@ public class UISyncManager {
                 final int newVal = getRandomCount(initialize);
                 if(initialize) updateThisChannelScheme(newVal);
                 if(isSchemeLoaded()){
-                    ((TextView)activity.findViewById(id)).setText(channelScheme.getCg_cur() + "");
+                    ((TextView)activity.findViewById(id)).setText(newVal + "");
                 }
                 isInitialized = true;
             }

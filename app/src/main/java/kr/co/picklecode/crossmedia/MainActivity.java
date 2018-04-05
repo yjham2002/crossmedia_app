@@ -93,6 +93,10 @@ public class MainActivity extends BaseActivity {
             final int state = intent.getExtras().getInt("state", -1);
             Log.e("MainReceiver", action);
             switch (action){
+                case "open":{
+                    controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                    break;
+                }
                 case "finish":{
                     Log.e("finishState", "invoked");
                     MainActivity.this.finish();
@@ -367,11 +371,13 @@ public class MainActivity extends BaseActivity {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
                         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
                         window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryPlayer));
+                        slideAnchor.setVisibility(View.INVISIBLE);
                     }else {
                         Window window = getWindow();
                         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
                         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
                         window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+                        slideAnchor.setVisibility(View.VISIBLE);
                     }
                 }
 
@@ -549,7 +555,7 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void loadMenuList(){
+    private void loadMenuList(final int page){
         progress.setVisibility(View.VISIBLE);
         mAdapterMenu.mListData.clear();
 
@@ -569,7 +575,7 @@ public class MainActivity extends BaseActivity {
                         article.setOrder(object.getInt("cg_order"));
 
                         mAdapterMenu.mListData.add(article);
-                        if(i == 0){
+                        if(i == page){
                             loadList(article, 1);
                         }
                     }
@@ -666,7 +672,9 @@ public class MainActivity extends BaseActivity {
     public void onResume(){
         super.onResume();
 
-        loadMenuList();
+        int toLoad = mAdapterMenu.getClickedPos();
+        loadMenuList(toLoad);
+        mAdapterMenu.setClickedPos(toLoad);
 
         registerReceiver(broadcastReceiver, new IntentFilter(Constants.ACTIVITY_INTENT_FILTER));
 
@@ -680,6 +688,11 @@ public class MainActivity extends BaseActivity {
         UISyncManager.getInstance().syncTimerSet(this, R.id.sleepTimer);
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
         mAdapter.dataChange();
+
+        if(getIntent().getStringExtra("action") != null && getIntent().getStringExtra("action").equals("open")) {
+            controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+            getIntent().removeExtra("action");
+        }
     }
 
     @Override

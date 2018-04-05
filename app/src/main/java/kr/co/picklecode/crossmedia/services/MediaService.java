@@ -471,6 +471,7 @@ public class MediaService extends Service implements View.OnClickListener{
         PendingIntent pendingIntent_close = PendingIntent.getBroadcast(this, Constants.INTENT_NOTIFICATION.REQ_CODE_ACTION_CLOSE, intent_close, 0);
         remoteViews.setOnClickPendingIntent(R.id.noti_close, pendingIntent_close);
 
+        PendingIntent noti_intent = createPendingIntent();
         remoteViews.setOnClickPendingIntent(R.id.mainLayout, createPendingIntent());
         /**
          * Setting Listeners end
@@ -525,6 +526,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     private PendingIntent createPendingIntent(){
         Intent resultIntent = new Intent(this, MainActivity.class);
+        resultIntent.putExtra("action", "open");
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(resultIntent);
