@@ -6,9 +6,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import bases.Constants;
-import kr.co.picklecode.crossmedia.FavorActivity;
-import kr.co.picklecode.crossmedia.MainActivity;
-import kr.co.picklecode.crossmedia.TimerActivity;
 import kr.co.picklecode.crossmedia.UISyncManager;
 import utils.PreferenceUtil;
 

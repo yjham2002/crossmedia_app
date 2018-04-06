@@ -97,6 +97,12 @@ public class MainActivity extends BaseActivity {
                     controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     break;
                 }
+                case "connected":{
+                    int toLoad = mAdapterMenu.getClickedPos();
+                    loadMenuList(toLoad);
+                    mAdapterMenu.setClickedPos(toLoad);
+                    break;
+                }
                 case "finish":{
                     Log.e("finishState", "invoked");
                     MainActivity.this.finish();

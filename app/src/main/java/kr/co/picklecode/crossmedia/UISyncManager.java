@@ -153,7 +153,7 @@ public class UISyncManager {
 
     private void updateThisChannelScheme(int newValue){
         channelScheme.setCg_cur(newValue);
-        if(mServer.getNowPlayingMusic().getParent() != null) mServer.getNowPlayingMusic().getParent().setCg_current(newValue);
+        if(mServer.getNowPlayingMusic() != null && mServer.getNowPlayingMusic().getParent() != null) mServer.getNowPlayingMusic().getParent().setCg_current(newValue);
     }
 
     private int syncInterval = 10000;
@@ -202,7 +202,8 @@ public class UISyncManager {
     private void syncCurrentTextInternal(Activity activity, int id, boolean initialize){ // Internal Function Method
         if(activity.findViewById(id) != null){
             if(activity.findViewById(id) instanceof TextView){
-                final int newVal = getRandomCount(initialize);
+                int newVal = getRandomCount(initialize);
+                if(newVal < 0) newVal = 0;
                 if(initialize) updateThisChannelScheme(newVal);
                 if(isSchemeLoaded()){
                     ((TextView)activity.findViewById(id)).setText(newVal + "");

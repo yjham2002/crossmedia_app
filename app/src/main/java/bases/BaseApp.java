@@ -35,6 +35,7 @@ public class BaseApp extends Application {
         MobileAds.initialize(this, ADMOB_AD_ID);
         final Intent backgroundIntentCall = new Intent(getBaseContext(), MediaService.class);
         bindService(backgroundIntentCall, mConnection, BIND_AUTO_CREATE);
+
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -61,7 +62,7 @@ public class BaseApp extends Application {
 
     @Override
     public void onTerminate(){
-        unbindService(mConnection);
+//        unbindService(mConnection);
         super.onTerminate();
     }
 

@@ -1,5 +1,6 @@
 package kr.co.picklecode.crossmedia.services;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -19,6 +20,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -236,6 +238,17 @@ public class MediaService extends Service implements View.OnClickListener{
         });
     }
 
+    public void resume(){
+        if(this.nowPlayingMusic != null) {
+            startChannel(this.nowPlayingMusic.getParent(), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    MediaService.this.sendRefreshingBroadcast();
+                }
+            });
+        }
+    }
+
     public void startChannel(final Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
         HashMap<String, Object> params = new HashMap<>();
         params.put("ap_id", 374);
@@ -272,7 +285,7 @@ public class MediaService extends Service implements View.OnClickListener{
         });
     }
 
-    private void startPlay(MediaRaw mediaRaw, final VideoCallBack videoCallBack, boolean nonStop) throws IllegalArgumentException{
+    private void startPlay(final MediaRaw mediaRaw, final VideoCallBack videoCallBack, boolean nonStop) throws IllegalArgumentException{
         Log.e("startPlay", mediaRaw.toString());
 //        if(!nonStop)
             stopMedia();
@@ -353,6 +366,10 @@ public class MediaService extends Service implements View.OnClickListener{
                         e.printStackTrace();
                         stopMedia();
 //                        throw new IllegalArgumentException("Cannot get server address of saycast");
+                    }catch (IllegalStateException ie){
+                        ie.printStackTrace();
+                        stopMedia();
+                        startPlay(mediaRaw, videoCallBack, false);
                     }
                 }
             });
@@ -550,7 +567,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
         Log.e("MediaService", "Notification showed");
 
-        if(nowPlayingMusic != null && nowPlayingMusic.getParent() != null) mNotificationManager.notify(notiId, notification);
+        if(nowPlayingMusic != null && nowPlayingMusic.getParent() != null) startForeground(notiId, notification);
     }
 
     private void setNotificationPlaying(RemoteViews remoteViews, int playId, int stopId, boolean isPlaying){

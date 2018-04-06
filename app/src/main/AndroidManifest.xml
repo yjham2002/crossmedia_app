@@ -47,6 +47,22 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
 
+        <receiver android:name="bases.utils.PhoneCallDetector"
+            android:enabled="true"
+            android:exported="false">
+            <!--<intent-filter>-->
+            <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
+            <!--</intent-filter>-->
+        </receiver>
+
+        <receiver android:name="bases.utils.NetworkStateReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <!--<intent-filter>-->
+            <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
+            <!--</intent-filter>-->
+        </receiver>
+
         <receiver android:name="bases.utils.AlarmBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
@@ -55,7 +71,7 @@
             <!--</intent-filter>-->
         </receiver>
 
-        <service android:enabled="true" android:name="kr.co.picklecode.crossmedia.services.MediaService" />
+        <service android:enabled="true" android:stopWithTask="false" android:name="kr.co.picklecode.crossmedia.services.MediaService" />
 
     </application>
 

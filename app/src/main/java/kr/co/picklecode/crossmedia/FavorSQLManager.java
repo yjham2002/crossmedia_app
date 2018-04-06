@@ -99,7 +99,7 @@ public class FavorSQLManager extends SQLiteOpenHelper {
     }
 
     public Set<Integer> getPrimaryKeySet(){
-        if(primaryKeySet == null) refreshPrimaryKeySet();
+        refreshPrimaryKeySet();
         return primaryKeySet;
     }
 

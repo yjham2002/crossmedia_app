@@ -23,7 +23,7 @@
         <LinearLayout
             android:orientation="vertical"
             android:gravity="center_vertical"
-            android:layout_width="wrap_content"
+            android:layout_width="200dp"
             android:layout_height="match_parent">
             <TextView
                 android:id="@+id/noti_title"
@@ -37,7 +37,7 @@
                 android:fadingEdge="horizontal"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:layout_width="150dp"
+                android:layout_width="match_parent"
                 android:scrollHorizontally="false"
                 android:layout_height="wrap_content"
                 ><requestFocus/> </TextView>
@@ -54,7 +54,7 @@
                 android:gravity="center_vertical|left"
                 android:textSize="@dimen/font_size_default"
                 android:text="설명이 입력됩니다."
-                android:layout_width="160dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
                 <requestFocus/>
             </TextView>
