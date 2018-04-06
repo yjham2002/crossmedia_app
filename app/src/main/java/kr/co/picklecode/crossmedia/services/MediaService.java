@@ -370,6 +370,10 @@ public class MediaService extends Service implements View.OnClickListener{
                         ie.printStackTrace();
                         stopMedia();
                         startPlay(mediaRaw, videoCallBack, false);
+                    }catch (Exception ee){
+                        ee.printStackTrace();
+                        stopMedia();
+                        startPlay(mediaRaw, videoCallBack, false);
                     }
                 }
             });
@@ -603,7 +607,7 @@ public class MediaService extends Service implements View.OnClickListener{
         }
 
         builder
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.temp_ico_small)
                 .setLargeIcon(icon)
                 .setContentTitle("StatusBar Title")
                 .setContentText("StatusBar subTitle")
