@@ -249,6 +249,18 @@ public class MediaService extends Service implements View.OnClickListener{
         }
     }
 
+    private int stateNumber = 1;
+    private Runnable stateCheckRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(stateNumber != 1){
+                nextMusic();
+            }
+        }
+    };
+
+    private Handler stateHandler = new Handler();
+
     public void startChannel(final Article article, final VideoCallBack videoCallBack) throws IllegalArgumentException{
         HashMap<String, Object> params = new HashMap<>();
         params.put("ap_id", 374);
@@ -324,6 +336,11 @@ public class MediaService extends Service implements View.OnClickListener{
                         videoCallBack.onCall();
                     }
                     sendRefreshingBroadcast();
+                    stateNumber = 1;
+
+                    // TODO
+                    stateHandler.removeCallbacks(stateCheckRunnable);
+                    stateHandler.postDelayed(stateCheckRunnable, 2500);
                 }
             }, 1200);
 
@@ -365,6 +382,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     }catch (IOException e){
                         e.printStackTrace();
                         stopMedia();
+                        nextMusic();
 //                        throw new IllegalArgumentException("Cannot get server address of saycast");
                     }catch (IllegalStateException ie){
                         ie.printStackTrace();
@@ -378,7 +396,9 @@ public class MediaService extends Service implements View.OnClickListener{
                 }
             });
         }else{ // else
-            throw new IllegalArgumentException("Unexpected Type number.");
+            stopMedia();
+            Log.e("MediaService", "Unexpected type number.");
+//            throw new IllegalArgumentException("Unexpected Type number.");
         }
     }
 
@@ -437,6 +457,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     Log.e("webView", url);
                     if(url.startsWith("pickle://currentStatus?state=")){
                         final int parsedState = Integer.parseInt(url.replaceAll("pickle://currentStatus\\?state=", ""));
+                        stateNumber = parsedState;
                         final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
                         if(repeatFlag){
                             activityIntent1.putExtra("action", "state");
@@ -670,6 +691,13 @@ public class MediaService extends Service implements View.OnClickListener{
 //            mediaPlayer.start();
 //        }
         return START_NOT_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        Log.e("MediaService", "onTaskRemoved");
+        stopMedia();
     }
 
     @Override
