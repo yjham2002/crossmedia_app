@@ -66,14 +66,26 @@ public class FavorActivity extends BaseActivity {
     private View slideAnchor;
     private ImageView arrowDown;
 
+    private View bufferProgress;
+
     private Activity mContext;
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
             final int state = intent.getExtras().getInt("state", -1);
+            final boolean flag = intent.getExtras().getBoolean("flag", false);
             Log.e("FavorRecv", action);
             switch (action){
+                case "buffering":{
+                    if(flag) {
+                        bufferProgress.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        bufferProgress.setVisibility(View.INVISIBLE);
+                    }
+                    break;
+                }
                 case "favorRefresh":{
                     loadList();
                     break;
@@ -271,6 +283,8 @@ public class FavorActivity extends BaseActivity {
 
     private void initView(){
         mContext = this;
+
+        bufferProgress = findViewById(R.id.bufferProgress);
 
         UISyncManager.getInstance().syncTimerSet(this, R.id.playing_timer);
 

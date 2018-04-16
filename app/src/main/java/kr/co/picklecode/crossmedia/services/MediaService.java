@@ -112,6 +112,33 @@ public class MediaService extends Service implements View.OnClickListener{
         }
     }
 
+    private void nextMusicInternally(){
+        UISyncManager.getInstance().getService().setRepeatFlag(false);
+        final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
+        if(nextIdx == -1) {
+            startPlay(UISyncManager.getInstance().getService().getNowPlayingMusic(), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    sendRefreshingBroadcast();
+                }
+            }, true);
+        }else if(nextIdx == -2){
+            startPlay(UISyncManager.getInstance().getSongList().get(0), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    sendRefreshingBroadcast();
+                }
+            }, true);
+        }else {
+            startPlay(UISyncManager.getInstance().getSongList().get(nextIdx), new VideoCallBack() {
+                @Override
+                public void onCall() {
+                    sendRefreshingBroadcast();
+                }
+            }, true);
+        }
+    }
+
     private BroadcastReceiver notificationListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -254,7 +281,8 @@ public class MediaService extends Service implements View.OnClickListener{
         @Override
         public void run() {
             if(stateNumber != 1){
-                nextMusic();
+                nextMusicInternally();
+                Log.e("MediaService", "nextMusic Fired : The status was " + stateNumber);
             }
         }
     };
@@ -299,6 +327,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
     private void startPlay(final MediaRaw mediaRaw, final VideoCallBack videoCallBack, boolean nonStop) throws IllegalArgumentException{
         Log.e("startPlay", mediaRaw.toString());
+        sendBufferingBroadcast(true);
 //        if(!nonStop)
             stopMedia();
         repeatFlag = false;
@@ -340,7 +369,8 @@ public class MediaService extends Service implements View.OnClickListener{
 
                     // TODO
                     stateHandler.removeCallbacks(stateCheckRunnable);
-                    stateHandler.postDelayed(stateCheckRunnable, 2500);
+                    stateHandler.postDelayed(stateCheckRunnable, 5000);
+                    sendBufferingBroadcast(false);
                 }
             }, 1200);
 
@@ -360,11 +390,20 @@ public class MediaService extends Service implements View.OnClickListener{
                                 nextMusic();
                             }
                         });
+                        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                            @Override
+                            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                                Log.e("MediaPlayer", "onError:" + i + ":" + i1);
+//                                nextMusicInternally();
+                                return false;
+                            }
+                        });
                         mediaPlayer.prepareAsync();
                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mediaPlayer) {
                                 mediaPlayer.start();
+                                sendBufferingBroadcast(false);
                             }
                         });
 
@@ -382,7 +421,7 @@ public class MediaService extends Service implements View.OnClickListener{
                     }catch (IOException e){
                         e.printStackTrace();
                         stopMedia();
-                        nextMusic();
+                        nextMusicInternally();
 //                        throw new IllegalArgumentException("Cannot get server address of saycast");
                     }catch (IllegalStateException ie){
                         ie.printStackTrace();
@@ -653,6 +692,7 @@ public class MediaService extends Service implements View.OnClickListener{
         mediaPlayer.reset();
         isPlaying = false;
         sendRefreshingBroadcast();
+        sendBufferingBroadcast(false);
     }
 
     public void sendFinishingBroadcast(){
@@ -664,6 +704,13 @@ public class MediaService extends Service implements View.OnClickListener{
     public void sendRefreshingBroadcast(){
         final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
         activityIntent1.putExtra("action", "refresh");
+        this.sendBroadcast(activityIntent1);
+    }
+
+    public void sendBufferingBroadcast(boolean showProgressbar){
+        final Intent activityIntent1 = new Intent(Constants.ACTIVITY_INTENT_FILTER);
+        activityIntent1.putExtra("action", "buffering");
+        activityIntent1.putExtra("flag", showProgressbar);
         this.sendBroadcast(activityIntent1);
     }
 

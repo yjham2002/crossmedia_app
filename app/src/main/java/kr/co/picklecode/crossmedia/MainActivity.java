@@ -85,14 +85,26 @@ public class MainActivity extends BaseActivity {
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
 
+    private View bufferProgress;
+
     private Activity mContext;
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
             final int state = intent.getExtras().getInt("state", -1);
+            final boolean flag = intent.getExtras().getBoolean("flag", false);
             Log.e("MainReceiver", action);
             switch (action){
+                case "buffering":{
+                    if(flag) {
+                        bufferProgress.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        bufferProgress.setVisibility(View.INVISIBLE);
+                    }
+                    break;
+                }
                 case "open":{
                     controllableSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                     break;
@@ -335,6 +347,8 @@ public class MainActivity extends BaseActivity {
         mContext = this;
 
         initControls();
+
+        bufferProgress = findViewById(R.id.bufferProgress);
 
         refreshAd(false, true);
 

@@ -19,97 +19,113 @@
         android:layout_height="match_parent"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-        <RelativeLayout
+
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
-            <FrameLayout
-                android:id="@+id/top_menu"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/top_menu_height"
-                android:layout_gravity="bottom"
-                android:background="@color/themeColor"
-                android:layout_alignParentTop="true"
-                android:padding="10dp"
-                android:orientation="horizontal">
+                android:layout_height="match_parent">
 
-                <LinearLayout
-                    android:id="@+id/btn_back_action"
-                    android:orientation="horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:clickable="true"
-                    android:background="?selectableItemBackgroundBorderless"
-                    >
-                    <ImageView
-                        android:layout_width="@dimen/top_icon_size"
-                        android:layout_height="@dimen/top_icon_size"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/btn_back"
-                        android:clickable="false"
-                        />
-                    <TextView
-                        android:clickable="false"
-                        android:layout_marginLeft="5dp"
+                <FrameLayout
+                    android:id="@+id/top_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/top_menu_height"
+                    android:layout_gravity="bottom"
+                    android:background="@color/themeColor"
+                    android:layout_alignParentTop="true"
+                    android:padding="10dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/btn_back_action"
+                        android:orientation="horizontal"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/font_size_strong"
-                        android:text="즐겨찾기"
-                        />
-                </LinearLayout>
+                        android:clickable="true"
+                        android:background="?selectableItemBackgroundBorderless"
+                        >
+                        <ImageView
+                            android:layout_width="@dimen/top_icon_size"
+                            android:layout_height="@dimen/top_icon_size"
+                            android:layout_gravity="center_vertical"
+                            android:src="@drawable/btn_back"
+                            android:clickable="false"
+                            />
+                        <TextView
+                            android:clickable="false"
+                            android:layout_marginLeft="5dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/font_size_strong"
+                            android:text="즐겨찾기"
+                            />
+                    </LinearLayout>
 
-            </FrameLayout>
+                </FrameLayout>
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/top_menu"
-                android:layout_above="@id/adView"
-                android:layout_centerVertical="true">
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/recyclerView"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-                </android.support.v7.widget.RecyclerView>
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/top_menu"
+                    android:layout_above="@id/adView"
+                    android:layout_centerVertical="true">
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                    </android.support.v7.widget.RecyclerView>
+                    <ProgressBar
+                        android:visibility="invisible"
+                        android:id="@+id/progressMain"
+                        android:indeterminateTint="@color/colorPrimary"
+                        android:indeterminateTintMode="src_in"
+                        android:layout_gravity="center"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"></ProgressBar>
+                    <ImageView
+                        android:id="@+id/top_btn"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:src="@drawable/btn_arrow_top"
+                        android:visibility="invisible"
+                        android:clickable="true"
+                        android:layout_margin="20dp"
+                        android:layout_gravity="right|bottom"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp" />
+                </FrameLayout>
+
+                <com.google.android.gms.ads.AdView
+                    android:id="@+id/adView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    ads:adSize="BANNER"
+                    android:layout_above="@id/spacer"
+                    ads:adUnitId="ca-app-pub-1846833106939117/2562484084">
+                </com.google.android.gms.ads.AdView>
+
+                <View
+                    android:id="@+id/spacer"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/player_height" />
+
+            </RelativeLayout>
+            <FrameLayout
+                android:id="@+id/bufferProgress"
+                android:visibility="invisible"
+                android:layout_width="match_parent"
+                android:background="@color/transparent_gray"
+                android:layout_height="match_parent">
                 <ProgressBar
-                    android:visibility="invisible"
-                    android:id="@+id/progressMain"
-                    android:indeterminateTint="@color/colorPrimary"
-                    android:indeterminateTintMode="src_in"
                     android:layout_gravity="center"
                     android:layout_width="30dp"
-                    android:layout_height="30dp"></ProgressBar>
-                <ImageView
-                    android:id="@+id/top_btn"
-                    android:background="?selectableItemBackgroundBorderless"
-                    android:src="@drawable/btn_arrow_top"
-                    android:visibility="invisible"
-                    android:clickable="true"
-                    android:layout_margin="20dp"
-                    android:layout_gravity="right|bottom"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp" />
+                    android:layout_height="30dp" />
             </FrameLayout>
-
-            <com.google.android.gms.ads.AdView
-                android:id="@+id/adView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                ads:adSize="BANNER"
-                android:layout_above="@id/spacer"
-                ads:adUnitId="ca-app-pub-1846833106939117/2562484084">
-            </com.google.android.gms.ads.AdView>
-
-            <View
-                android:id="@+id/spacer"
-                android:layout_alignParentBottom="true"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/player_height" />
-
-        </RelativeLayout>
+        </FrameLayout>
 
     </FrameLayout>
 

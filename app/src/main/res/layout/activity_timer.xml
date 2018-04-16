@@ -18,74 +18,91 @@
         android:layout_height="match_parent"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-        <RelativeLayout
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <FrameLayout
-                android:id="@+id/top_menu"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/top_menu_height"
-                android:layout_gravity="bottom"
-                android:background="@color/themeColor"
-                android:layout_alignParentTop="true"
-                android:padding="10dp"
-                android:orientation="horizontal">
+                android:layout_height="match_parent">
 
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent">
-                    <ImageView
-                        android:id="@+id/btn_back_action"
-                        android:layout_width="@dimen/top_icon_size"
-                        android:layout_height="@dimen/top_icon_size"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/btn_back"
-                        android:clickable="true"
-                        android:background="?selectableItemBackgroundBorderless"
+                <FrameLayout
+                    android:id="@+id/top_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/top_menu_height"
+                    android:layout_gravity="bottom"
+                    android:background="@color/themeColor"
+                    android:layout_alignParentTop="true"
+                    android:padding="10dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:id="@+id/btn_back_action"
+                            android:layout_width="@dimen/top_icon_size"
+                            android:layout_height="@dimen/top_icon_size"
+                            android:layout_gravity="center_vertical"
+                            android:src="@drawable/btn_back"
+                            android:clickable="true"
+                            android:background="?selectableItemBackgroundBorderless"
+                            />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_marginLeft="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:layout_gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/font_size_strong"
+                        android:text="Sleep Timer"
+                        android:id="@+id/sleepTimerCaption"
                         />
-                </LinearLayout>
 
-                <TextView
-                    android:layout_marginLeft="5dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
+                </FrameLayout>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/top_menu"
+                    android:layout_above="@id/adView"
+                    android:layout_centerVertical="true"></android.support.v7.widget.RecyclerView>
+
+                <com.google.android.gms.ads.AdView
+                    android:id="@+id/adView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    ads:adSize="BANNER"
+                    android:layout_above="@id/spacer"
+                    ads:adUnitId="ca-app-pub-1846833106939117/2562484084">
+                </com.google.android.gms.ads.AdView>
+
+                <View
+                    android:id="@+id/spacer"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/player_height" />
+
+            </RelativeLayout>
+
+            <FrameLayout
+                android:id="@+id/bufferProgress"
+                android:visibility="invisible"
+                android:layout_width="match_parent"
+                android:background="@color/transparent_gray"
+                android:layout_height="match_parent">
+                <ProgressBar
                     android:layout_gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/font_size_strong"
-                    android:text="Sleep Timer"
-                    android:id="@+id/sleepTimerCaption"
-                    />
-
+                    android:layout_width="30dp"
+                    android:layout_height="30dp" />
             </FrameLayout>
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/top_menu"
-                android:layout_above="@id/adView"
-                android:layout_centerVertical="true"></android.support.v7.widget.RecyclerView>
-
-            <com.google.android.gms.ads.AdView
-                android:id="@+id/adView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                ads:adSize="BANNER"
-                android:layout_above="@id/spacer"
-                ads:adUnitId="ca-app-pub-1846833106939117/2562484084">
-            </com.google.android.gms.ads.AdView>
-
-            <View
-                android:id="@+id/spacer"
-                android:layout_alignParentBottom="true"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/player_height" />
-
-        </RelativeLayout>
+        </FrameLayout>
 
     </FrameLayout>
 

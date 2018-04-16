@@ -57,6 +57,8 @@ public class TimerActivity extends BaseActivity {
 
     private ToggleButton playingTimer;
 
+    private View bufferProgress;
+
     /**
      * Player Component
      */
@@ -138,8 +140,18 @@ public class TimerActivity extends BaseActivity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getExtras().getString("action", "");
             final int state = intent.getExtras().getInt("state", -1);
+            final boolean flag = intent.getExtras().getBoolean("flag", false);
             Log.e("TimerRecv", action);
             switch (action){
+                case "buffering":{
+                    if(flag) {
+                        bufferProgress.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        bufferProgress.setVisibility(View.INVISIBLE);
+                    }
+                    break;
+                }
                 case "finish":{
                     Log.e("finishState", "invoked");
                     TimerActivity.this.finish();
@@ -318,6 +330,8 @@ public class TimerActivity extends BaseActivity {
 
     private void initView(){
         this.mContext = this;
+
+        bufferProgress = findViewById(R.id.bufferProgress);
 
         initControls();
 
