@@ -76,6 +76,23 @@ public class MediaService extends Service implements View.OnClickListener{
     private IBinder mBinder = new LocalBinder();
 
     private void nextMusic(){
+
+        List<MediaRaw> list = UISyncManager.getInstance().getSongList();
+
+        boolean isYoutubeChannel = false;
+
+        for(MediaRaw mediaRaw : list){
+            if(mediaRaw.getType() == 0 || mediaRaw.getType() == 1){
+                isYoutubeChannel = true;
+                break;
+            }
+        }
+
+        if(isYoutubeChannel){
+            nextMusicInternally();
+            return;
+        }
+
         UISyncManager.getInstance().getService().setRepeatFlag(false);
         final int nextIdx = UISyncManager.getInstance().getNextSongIndex();
         if(nextIdx == -1) {
