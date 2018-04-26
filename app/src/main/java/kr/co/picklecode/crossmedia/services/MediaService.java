@@ -23,6 +23,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -33,7 +34,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -46,8 +46,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import at.huber.youtubeExtractor.VideoMeta;
+import at.huber.youtubeExtractor.YouTubeExtractor;
+import at.huber.youtubeExtractor.YouTubeUriExtractor;
+import at.huber.youtubeExtractor.YtFile;
 import bases.Constants;
 import bases.SimpleCallback;
+import bases.SimpleStringCallback;
 import bases.imageTransform.RoundedTransform;
 import bases.utils.AlarmUtils;
 import comm.SimpleCall;
@@ -56,6 +61,9 @@ import kr.co.picklecode.crossmedia.R;
 import kr.co.picklecode.crossmedia.UISyncManager;
 import kr.co.picklecode.crossmedia.models.Article;
 import kr.co.picklecode.crossmedia.models.MediaRaw;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import utils.PreferenceUtil;
 
 /**
@@ -342,6 +350,43 @@ public class MediaService extends Service implements View.OnClickListener{
         });
     }
 
+    private void getStreamFromYoutube(final String url, final SimpleCallback onFailure, final SimpleStringCallback onSucc){
+        new YouTubeExtractor(this) {
+            @Override
+            public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
+                if (ytFiles != null) {
+                    String downloadUrl = "";
+                    for (int i = 0, itag; i < ytFiles.size(); i++) {
+                        itag = ytFiles.keyAt(i);
+                        YtFile ytFile = ytFiles.get(itag);
+                        if (ytFile.getFormat().getHeight() == -1) {
+                            downloadUrl = ytFiles.get(itag).getUrl();
+                            break;
+                        }
+                    }
+                    if(downloadUrl.isEmpty()){
+                        for (int i = 0, itag; i < ytFiles.size(); i++) {
+                            itag = ytFiles.keyAt(i);
+                            YtFile ytFile = ytFiles.get(itag);
+
+                            // Just add videos in a decent format => height -1 = audio
+                            if (ytFile.getFormat().getExt().equals("mp4")) {
+                                downloadUrl = ytFiles.get(itag).getUrl();
+                                break;
+                            }
+                        }
+                    }
+
+                    Log.e("getStreamFromYoutube", url + "//" + downloadUrl);
+
+                    if(onSucc != null) onSucc.callback(downloadUrl);
+                } else {
+                    if(onFailure != null) onFailure.callback();
+                }
+            }
+        }.extract(url, true, true);
+    }
+
     private void startPlay(final MediaRaw mediaRaw, final VideoCallBack videoCallBack, boolean nonStop) throws IllegalArgumentException{
         Log.e("startPlay", mediaRaw.toString());
         sendBufferingBroadcast(true);
@@ -371,27 +416,95 @@ public class MediaService extends Service implements View.OnClickListener{
                 throw new IllegalArgumentException();
             }
 
-            webView.loadUrl(Constants.BASE_YOUTUBE_URL + filtered);
+//            webView.loadUrl(Constants.BASE_YOUTUBE_URL + filtered);
 
-            new Handler().postDelayed(new Runnable() {
+            getStreamFromYoutube(url, new SimpleCallback() {
                 @Override
-                public void run() {
-                    isPlaying = true;
-                    repeatFlag = true;
+                public void callback() {
+                    stopMedia();
                     if(videoCallBack != null){
                         videoCallBack.onCall();
                     }
                     sendRefreshingBroadcast();
-                    stateNumber = 1;
-
-                    // TODO
-                    stateHandler.removeCallbacks(stateCheckRunnable);
-                    stateHandler.postDelayed(stateCheckRunnable, 5000);
                     sendBufferingBroadcast(false);
+                    nextMusicInternally();
                 }
-            }, 1200);
+            }, new SimpleStringCallback() {
+                @Override
+                public void callback(String str) {
+                    try {
+                        Log.e("youtube", str);
+                        mediaPlayer.setDataSource(str);
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mediaPlayer) {
+                                nextMusicInternally();
+                            }
+                        });
+                        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                            @Override
+                            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                                Log.e("MediaPlayer", "onError:" + i + ":" + i1);
+//                                nextMusicInternally();
+                                return false;
+                            }
+                        });
+                        mediaPlayer.prepareAsync();
+                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mediaPlayer) {
+                                mediaPlayer.start();
+                                sendBufferingBroadcast(false);
+                            }
+                        });
 
-            checkState();
+                        /**
+                         * Preparing Process has been changed to asynchronous mode at Mar, 24th, 2018 14:03
+                         */
+
+                        isPlaying = true;
+
+                        if(videoCallBack != null){
+                            videoCallBack.onCall();
+                        }
+                        sendRefreshingBroadcast();
+
+                    }catch (IOException e){
+                        e.printStackTrace();
+                        stopMedia();
+                        nextMusicInternally();
+//                        throw new IllegalArgumentException("Cannot get server address of saycast");
+                    }catch (IllegalStateException ie){
+                        ie.printStackTrace();
+                        stopMedia();
+                        startPlay(mediaRaw, videoCallBack, false);
+                    }catch (Exception ee){
+                        ee.printStackTrace();
+                        stopMedia();
+                        startPlay(mediaRaw, videoCallBack, false);
+                    }
+                }
+            });
+
+//            new Handler().postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    isPlaying = true;
+//                    repeatFlag = true;
+//                    if(videoCallBack != null){
+//                        videoCallBack.onCall();
+//                    }
+//                    sendRefreshingBroadcast();
+//                    stateNumber = 1;
+//
+//                    // TODO
+//                    stateHandler.removeCallbacks(stateCheckRunnable);
+//                    stateHandler.postDelayed(stateCheckRunnable, 5000);
+//                    sendBufferingBroadcast(false);
+//                }
+//            }, 1200);
+
+//            checkState();
         }else if(mediaRaw.getType() == 2){ // Saycast
             intervalStateCheckHandler.removeCallbacks(stateCheck); // cancel state check
 
@@ -492,15 +605,15 @@ public class MediaService extends Service implements View.OnClickListener{
 
         mediaPlayer = new MediaPlayer();
 
-        WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                versionDependedType,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+//        WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
+//                WindowManager.LayoutParams.WRAP_CONTENT,
+//                WindowManager.LayoutParams.WRAP_CONTENT,
+//                versionDependedType,
 //                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        mManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+////                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+//                PixelFormat.TRANSLUCENT);
+//
+//        mManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         webView = mView.findViewById(R.id.mediaWebView);
 
@@ -565,7 +678,7 @@ public class MediaService extends Service implements View.OnClickListener{
 
         Log.e("MediaService", "onCreate : webView initialized.");
 
-        mManager.addView(mView, mParams);
+//        mManager.addView(mView, mParams);
     }
 
     protected void showPlayerNotification(){
@@ -732,9 +845,9 @@ public class MediaService extends Service implements View.OnClickListener{
     }
 
     public void stopAll(){
-        if(mView != null){
-            mManager.removeView(mView);
-        }
+//        if(mView != null){
+//            mManager.removeView(mView);
+//        }
         webView.loadUrl("javascript:player.pauseVideo();");
         Log.e("MediaService", "stopMedia Invoked.");
         mediaPlayer.reset();
